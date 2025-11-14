@@ -1,0 +1,132 @@
+# ==============================================
+# Qt 构建产物与编译中间文件
+# ==============================================
+# 构建目录
+build/
+build-*/
+bin/
+lib/
+release/
+debug/
+out/
+build_dir/
+dist/
+
+# 编译产物
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dll
+*.dylib
+*.exe
+*.app
+*.pdb
+*.ilk
+*.manifest
+*.exp
+*.idb
+*.sdf
+*.opensdf
+
+# 构建脚本与缓存
+Makefile
+Makefile.*
+.qmake.stash
+*.qmake.cache
+compile_commands.json
+*.idx
+
+# ==============================================
+# Qt 自动生成文件
+# ==============================================
+# UI/元对象/资源文件生成代码
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+uic_*.cpp
+*.moc
+*.rcc
+*.qrc.depends
+
+# 翻译文件相关
+*.ts
+*.ts~
+*.qm
+*.qm~
+
+# 预编译头文件
+*.gch
+*.pch
+
+# ==============================================
+# IDE 配置文件（本地配置不提交）
+# ==============================================
+# Qt Creator
+*.pro.user
+*.pro.user.*
+*.creator
+*.creator.user
+*.creator.user.*
+*.files
+*.includes
+*.config
+*.cflags
+*.cxxflags
+*.ldflags
+.qtc_clangd/
+
+# VS Code
+.vscode/
+
+# JetBrains 系列（CLion、Qt Creator 等）
+.idea/
+
+# Sublime Text
+*.sublime-*
+
+# Eclipse
+*.project
+*.cproject
+.csettings
+
+# Visual Studio
+*.vcxproj.user
+*.vcxproj.filters
+*.suo
+
+# ==============================================
+# CMake 相关（若使用 CMake 构建）
+# ==============================================
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake
+CTestTestfile.cmake
+build.ninja
+.ninja*
+
+# ==============================================
+# 项目动态文件与临时文件
+# ==============================================
+# 数据库文件（动态生成）
+*.db
+*.sqlite
+*.db-journal
+
+
+# 日志文件
+logs/
+*.log
+
+# 系统/编辑器临时文件
+.DS_Store
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.orig
