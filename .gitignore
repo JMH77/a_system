@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ==============================================
 # Qt 构建产物与编译中间文件
 # ==============================================
@@ -130,3 +131,46 @@ logs/
 *.bak
 *.tmp
 *.orig
+=======
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# debug information files
+*.dwo
+>>>>>>> 281d604609a5f6fcd756384d11a77bbf9cfaee32
