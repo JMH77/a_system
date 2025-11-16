@@ -20,6 +20,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     this->setWindowTitle("登录");
     initUI();
+
+    // 设置一个合理的默认窗口尺寸与最小尺寸，避免启动时过小
+    this->resize(880, 640);
+    this->setMinimumSize(880, 640);
 }
 
 MainWindow::~MainWindow()
