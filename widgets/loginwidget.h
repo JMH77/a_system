@@ -11,11 +11,26 @@ public:
 
 	void setBackgroundImage();
 
+signals:
+    void loginSuccess(const QString &username);
+    void loginFailed(const QString &errorMessage);
+    void changeToRegister();
+
 private:
     void setupUI();
     void applyStyles();
     //重写paintEvent事件，绘制背景图
     void paintEvent(class QPaintEvent *event) override;
+
+    //验证输入格式是否正确
+    bool validateInput();
+
+
+private slots:
+    //登录按钮点击槽函数
+    void onLoginButtonClicked();
+    //注册按钮点击槽函数
+    void onRegisterButtonClicked();
 
 private:
 	class QLabel *m_usernameLabel;

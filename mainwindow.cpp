@@ -24,6 +24,9 @@ MainWindow::MainWindow(QWidget *parent)
     // 设置一个合理的默认窗口尺寸与最小尺寸，避免启动时过小
     this->resize(880, 640);
     this->setMinimumSize(880, 640);
+
+    //调用建立槽函数连接
+    connections();
 }
 
 MainWindow::~MainWindow()
@@ -55,6 +58,14 @@ void MainWindow::initUI()
     m_stackedWidget->setCurrentIndex(0);
 }
 
+void MainWindow::connections()
+{
+    //当收到登陆界面的注册按钮点击后发出的切换到注册界面信号
+    connect(m_loginWidget, &LoginWidget::changeToRegister, this, [this](){
+        m_stackedWidget->setCurrentIndex(1);
+    });
+
+}
 
 
 

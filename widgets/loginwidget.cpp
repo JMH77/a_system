@@ -16,6 +16,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
+#include <QMessageBox>
 
 LoginWidget::LoginWidget(QWidget *parent) : QWidget(parent)
 {
@@ -23,6 +24,12 @@ LoginWidget::LoginWidget(QWidget *parent) : QWidget(parent)
 	applyStyles();
 
 	setBackgroundImage();
+
+	//连接信号和槽
+    //点击登录按钮的信号和槽函数
+    connect(m_loginButton, &QPushButton::clicked, this, &LoginWidget::onLoginButtonClicked);
+    //点击注册按钮发出信号(让主窗口中的堆叠窗口收到并切换界面)
+    connect(m_registerButton, &QPushButton::clicked, this, &LoginWidget::onRegisterButtonClicked);
 }
 
 void LoginWidget::setupUI()
@@ -225,8 +232,7 @@ void LoginWidget::setBackgroundImage()
 
 	// 使用样式表 border-image 自适应填充，随窗口变化自动缩放
 	if (!path.isEmpty()) {
-		// 验证图片是否可被加载（可帮助发现编码/插件问题）
-		QPixmap probe(path); // 同时作为 paintEvent 的背景缓存
+		QPixmap probe(path); 
 		if (!probe.isNull()) {
 			m_bgPixmap = probe;
 			update(); // 触发重绘
@@ -252,4 +258,61 @@ void LoginWidget::paintEvent(QPaintEvent *event)
     }
     QWidget::paintEvent(event);
 }
+
+bool LoginWidget::validateInput()
+{
+	QString username = m_usernameEdit->text().trimmed();
+    QString password = m_passwordEdit->text().trimmed();
+
+    if(username.isEmpty() || username.length() < 3){
+        return false;
+    }
+	for (const QChar &c : username) {
+		ushort unicode = c.unicode();
+        if (unicode >= 0x4E00 && unicode <= 0x9FFF) {
+            return false;
+        }
+    }
+
+    if(password.isEmpty() || password.length() < 6 || password.length() > 18){
+        return false;
+    }
+	for (const QChar &c : password) {
+		ushort unicode = c.unicode();
+        if (unicode >= 0x4E00 && unicode <= 0x9FFF) {
+            return false;
+        }
+	}
+	return true;
+}
+
+void LoginWidget::onRegisterButtonClicked()
+{
+	emit changeToRegister();
+}
+
+void LoginWidget::onLoginButtonClicked()
+{
+	if(!validateInput()){
+        QMessageBox::information(this, "格式错误", "用户名或密码格式错误！");
+	}
+	QString username = m_usernameEdit->text().trimmed();
+	QString password = m_passwordEdit->text().trimmed();
+	//todo:验证用户名和密码是否正确
+	if(true){
+		emit loginSuccess(username);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 

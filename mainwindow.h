@@ -24,6 +24,9 @@ public:
     // 初始化UI->创建页面，并添加到堆叠窗口
     void initUI();
 
+    //建立槽函数连接
+    void connections();
+
 
 
 private:
