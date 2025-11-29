@@ -95,9 +95,25 @@ void MainWindow::connections()
 
     //连接登录成功信号
     connect(m_loginWidget, &LoginWidget::loginSuccess, this, [this](const QString &username){
+        // 根据用户权限更新主界面按钮状态
+        m_mainContentWidget->updateButtonsByPermissions(m_authManager, username);
+        
         // 切换到主内容页面
         m_stackedWidget->setCurrentIndex(2);  // 索引2是主内容页面
         this->setWindowTitle(QString("欢迎，%1").arg(username));
+    });
+    
+    // 连接权限管理请求信号
+    connect(m_mainContentWidget, &MainContentWidget::permissionManagementRequested, this, [this](){
+        // 打开权限管理对话框
+        PermissionManagementWidget *permWidget = new PermissionManagementWidget(m_authManager, this);
+        permWidget->setAttribute(Qt::WA_DeleteOnClose);
+        permWidget->exec();
+        
+        // 权限更新后，刷新主界面按钮显示
+        // 重新获取当前用户名并更新按钮状态
+        // 这里需要从登录信息中获取，暂时使用adminjmh（因为只有管理员能打开这个对话框）
+        m_mainContentWidget->updateButtonsByPermissions(m_authManager, "adminjmh");
     });
 
     //连接登录失败信号

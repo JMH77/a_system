@@ -5,6 +5,7 @@
 #include <QSqlDatabase>
 #include <QDebug>
 #include <QCryptographicHash>
+#include <QList>
 
 AuthManager::AuthManager(databasemanager *dbManager)
     : m_dbManager(dbManager)
@@ -163,6 +164,107 @@ bool AuthManager::login(const QString &username, const QString &password)
     
     qDebug() << "用户登录成功:" << username;
     return true;
+}
+
+// 获取用户的功能权限列表
+QList<int> AuthManager::getUserFunctionPermissions(const QString &username) const
+{
+    QList<int> permissions;
+    
+    if (!m_dbManager || !m_dbManager->isConnected()) {
+        return permissions;
+    }
+    
+    QSqlDatabase db = m_dbManager->getDatabase();
+    
+    // 先检查用户是否是管理员（role_type=1）
+    QSqlQuery roleQuery(db);
+    roleQuery.prepare("SELECT role_type FROM NowUsers WHERE username = ?");
+    roleQuery.addBindValue(username);
+    bool isAdmin = false;
+    if (roleQuery.exec() && roleQuery.next()) {
+        int roleType = roleQuery.value(0).toInt();
+        isAdmin = (roleType == 1);
+    }
+    roleQuery.finish();
+    
+    // 如果是管理员，返回所有权限
+    if (isAdmin) {
+        return QList<int>() << 1 << 2 << 3 << 4 << 5;
+    }
+    
+    // 查询普通用户的功能权限
+    // 先获取userid
+    QSqlQuery userQuery(db);
+    userQuery.prepare("SELECT userid FROM NowUsers WHERE username = ?");
+    userQuery.addBindValue(username);
+    int userId = -1;
+    if (userQuery.exec() && userQuery.next()) {
+        userId = userQuery.value(0).toInt();
+    }
+    userQuery.finish();
+    
+    if (userId <= 0) {
+        return permissions;
+    }
+    
+    // 查询该用户启用的功能权限
+    QSqlQuery permQuery(db);
+    permQuery.prepare("SELECT function_id FROM NowUsersPermissions WHERE userid = ? AND enabled = 1");
+    permQuery.addBindValue(userId);
+    
+    if (permQuery.exec()) {
+        while (permQuery.next()) {
+            permissions.append(permQuery.value(0).toInt());
+        }
+    }
+    permQuery.finish();
+    
+    return permissions;
+}
+
+// 检查用户是否有指定功能的权限
+bool AuthManager::hasFunctionPermission(const QString &username, int functionId) const
+{
+    QList<int> permissions = getUserFunctionPermissions(username);
+    return permissions.contains(functionId);
+}
+
+// 获取所有用户列表
+QList<userinfo> AuthManager::getAllUsers() const
+{
+    QList<userinfo> users;
+    
+    if (!m_dbManager || !m_dbManager->isConnected()) {
+        return users;
+    }
+    
+    QSqlDatabase db = m_dbManager->getDatabase();
+    QSqlQuery query(db);
+    
+    query.prepare("SELECT username, email, name FROM NowUsers ORDER BY username");
+    
+    if (query.exec()) {
+        while (query.next()) {
+            userinfodata data;
+            data.username = query.value(0).toString();
+            data.email = query.value(1).toString();
+            data.name = query.value(2).toString();
+            
+            userinfo user;
+            user.setUserData(data);
+            users.append(user);
+        }
+    }
+    query.finish();
+    
+    return users;
+}
+
+// 获取数据库管理器
+databasemanager* AuthManager::getDatabaseManager() const
+{
+    return m_dbManager;
 }
 
 // 获取错误信息

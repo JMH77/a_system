@@ -1,5 +1,6 @@
 #include "databasemanager.h"
 #include "../config/configmanager.h"
+#include <QCryptographicHash>
 
 databasemanager::databasemanager(configmanager *config)
     :m_configManager(config),
@@ -117,14 +118,15 @@ bool databasemanager::initUserTable()
         return false;
     }
     
-    // 创建用户表（参考成功的达梦数据库语法）
+    // 创建用户表（包含role_type字段）
     QString createTableSQL = 
         "CREATE TABLE IF NOT EXISTS NowUsers ("
         "userid INT PRIMARY KEY IDENTITY, "
         "username VARCHAR(100) UNIQUE NOT NULL, "
         "password VARCHAR(255) NOT NULL, "
         "email VARCHAR(255), "
-        "name VARCHAR(100)"
+        "name VARCHAR(100), "
+        "role_type INT DEFAULT 2"
         ")";
     
     QSqlQuery query(m_db);
@@ -133,14 +135,140 @@ bool databasemanager::initUserTable()
         // 如果表已存在，视为成功
         if (errorText.contains("已存在") || errorText.contains("already exists")) {
             qDebug() << "用户表已存在，跳过创建";
-            return true;
+        } else {
+            m_lastError = QString("创建用户表失败: %1").arg(errorText);
+            qDebug() << m_lastError;
+            return false;
         }
-        m_lastError = QString("创建用户表失败: %1").arg(errorText);
+    } else {
+        qDebug() << "用户表创建成功";
+    }
+    query.finish();
+    
+    // 初始化超级管理员 adminjmh
+    // 先检查是否存在
+    QSqlQuery checkAdminQuery(m_db);
+    checkAdminQuery.prepare("SELECT COUNT(*) FROM NowUsers WHERE username = ?");
+    checkAdminQuery.addBindValue("adminjmh");
+    bool adminExists = false;
+    if (checkAdminQuery.exec() && checkAdminQuery.next()) {
+        int count = checkAdminQuery.value(0).toInt();
+        adminExists = (count > 0);
+    }
+    checkAdminQuery.finish();
+    
+    if (!adminExists) {
+        // 创建超级管理员，密码为adminjmh123（MD5加密）
+        QSqlQuery insertAdminQuery(m_db);
+        QString password = "adminjmh123";
+        QByteArray hash = QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Md5);
+        QString passwordHash = hash.toHex();
+        
+        insertAdminQuery.prepare("INSERT INTO NowUsers (username, password, email, name, role_type) VALUES (?, ?, ?, ?, ?)");
+        insertAdminQuery.addBindValue("adminjmh");
+        insertAdminQuery.addBindValue(passwordHash);
+        insertAdminQuery.addBindValue("");
+        insertAdminQuery.addBindValue("超级管理员");
+        insertAdminQuery.addBindValue(1);  // role_type = 1 (admin)
+        
+        if (insertAdminQuery.exec()) {
+            qDebug() << "超级管理员adminjmh创建成功";
+            // 提交事务
+            if (!m_db.commit()) {
+                qDebug() << "提交事务失败:" << m_db.lastError().text();
+            }
+        } else {
+            qDebug() << "创建超级管理员失败:" << insertAdminQuery.lastError().text();
+        }
+        insertAdminQuery.finish();
+    } else {
+        qDebug() << "超级管理员adminjmh已存在";
+    }
+    
+    qDebug() << "用户表初始化成功";
+    return true;
+}
+
+//初始化用户权限表
+bool databasemanager::initUserPermissionsTable()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
         qDebug() << m_lastError;
         return false;
     }
     
-    qDebug() << "用户表初始化成功";
+    // 创建用户权限表
+    QString createTableSQL = 
+        "CREATE TABLE IF NOT EXISTS NowUsersPermissions ("
+        "permissionid INT PRIMARY KEY IDENTITY, "
+        "userid INT NOT NULL, "
+        "function_id INT NOT NULL, "
+        "enabled INT DEFAULT 0, "
+        "FOREIGN KEY (userid) REFERENCES NowUsers(userid) ON DELETE CASCADE, "
+        "UNIQUE(userid, function_id)"
+        ")";
+    
+    QSqlQuery query(m_db);
+    if (!query.exec(createTableSQL)) {
+        QString errorText = query.lastError().text();
+        // 如果表已存在，视为成功
+        if (errorText.contains("已存在") || errorText.contains("already exists")) {
+            qDebug() << "用户权限表已存在，跳过创建";
+        } else {
+            m_lastError = QString("创建用户权限表失败: %1").arg(errorText);
+            qDebug() << m_lastError;
+            return false;
+        }
+    } else {
+        qDebug() << "用户权限表创建成功";
+    }
+    query.finish();
+    
+    // 为超级管理员adminjmh初始化所有权限（5个功能全部启用）
+    QSqlQuery adminQuery(m_db);
+    adminQuery.prepare("SELECT userid FROM NowUsers WHERE username = ?");
+    adminQuery.addBindValue("adminjmh");
+    int adminUserId = -1;
+    if (adminQuery.exec() && adminQuery.next()) {
+        adminUserId = adminQuery.value(0).toInt();
+    }
+    adminQuery.finish();
+    
+    if (adminUserId > 0) {
+        // 为adminjmh添加5个功能的权限（全部启用）
+        for (int funcId = 1; funcId <= 5; ++funcId) {
+            QSqlQuery permQuery(m_db);
+            permQuery.prepare("INSERT INTO NowUsersPermissions (userid, function_id, enabled) VALUES (?, ?, ?)");
+            permQuery.addBindValue(adminUserId);
+            permQuery.addBindValue(funcId);
+            permQuery.addBindValue(1);  // 启用
+            
+            if (!permQuery.exec()) {
+                QString errorText = permQuery.lastError().text();
+                // 如果已存在，忽略错误
+                if (errorText.contains("唯一") || errorText.contains("UNIQUE") || 
+                    errorText.contains("重复") || errorText.contains("duplicate")) {
+                    // 权限已存在，跳过
+                } else {
+                    qDebug() << "为adminjmh添加功能" << funcId << "权限失败:" << errorText;
+
+                }
+            }
+            permQuery.finish();
+        }
+        
+        // 提交事务
+        if (!m_db.commit()) {
+            qDebug() << "提交权限初始化事务失败:" << m_db.lastError().text();
+        } else {
+            qDebug() << "超级管理员权限初始化成功";
+        }
+    } else {
+        qDebug() << "未找到adminjmh用户，跳过权限初始化";
+    }
+    
+    qDebug() << "用户权限表初始化成功";
     return true;
 }
 
@@ -149,6 +277,7 @@ QSqlDatabase databasemanager::getDatabase() const
 {
     return m_db;
 }
+
 
 
 

@@ -10,6 +10,7 @@
 #include "widgets/loginwidget.h"
 #include "widgets/registerwidget.h"
 #include "widgets/maincontentwidget.h"
+#include "widgets/permissionmanagementwidget.h"
 
 
 

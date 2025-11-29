@@ -29,6 +29,9 @@ public:
     //初始化用户表
     bool initUserTable();
     
+    //初始化用户权限表
+    bool initUserPermissionsTable();
+    
     //获取数据库连接（供其他模块使用）
     QSqlDatabase getDatabase() const;
 

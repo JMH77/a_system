@@ -1,4 +1,5 @@
 #include "maincontentwidget.h"
+#include "../auth/authmanager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -10,14 +11,17 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFont>
+#include <QDebug>
 
 MainContentWidget::MainContentWidget(QWidget *parent)
     : QWidget(parent)
+    , m_authManager(nullptr)
     , m_functionButton1(nullptr)
     , m_functionButton2(nullptr)
     , m_functionButton3(nullptr)
     , m_functionButton4(nullptr)
     , m_functionButton5(nullptr)
+    , m_permissionButton(nullptr)
 {
     setupUI();
     applyStyles();
@@ -32,13 +36,19 @@ void MainContentWidget::setupUI()
     m_functionButton3 = new QPushButton("功能三", this);
     m_functionButton4 = new QPushButton("功能四", this);
     m_functionButton5 = new QPushButton("功能五", this);
+    
+    // 创建权限管理按钮（初始隐藏，仅管理员可见）
+    m_permissionButton = new QPushButton("权限管理", this);
+    m_permissionButton->setObjectName("permissionButton");
+    m_permissionButton->hide();
+    connect(m_permissionButton, &QPushButton::clicked, this, &MainContentWidget::onPermissionManagementClicked);
 
-    // 设置按钮对象名，便于样式设置
-    m_functionButton1->setObjectName("functionButton");
-    m_functionButton2->setObjectName("functionButton");
-    m_functionButton3->setObjectName("functionButton");
-    m_functionButton4->setObjectName("functionButton");
-    m_functionButton5->setObjectName("functionButton");
+    // 设置按钮对象名，便于样式设置和权限控制
+    m_functionButton1->setObjectName("functionButton1");
+    m_functionButton2->setObjectName("functionButton2");
+    m_functionButton3->setObjectName("functionButton3");
+    m_functionButton4->setObjectName("functionButton4");
+    m_functionButton5->setObjectName("functionButton5");
 
     // 创建垂直布局放置按钮
     QVBoxLayout *buttonsLayout = new QVBoxLayout();
@@ -63,11 +73,18 @@ void MainContentWidget::setupUI()
     hCenter->addWidget(centerPanel);
     hCenter->addStretch();
 
-    // 顶层垂直布局：上方伸展 + 中间按钮 + 下方伸展，确保垂直居中
+    // 顶层垂直布局：上方伸展 + 中间按钮 + 下方伸展 + 权限管理按钮（左下角）
     QVBoxLayout *rootLayout = new QVBoxLayout();
     rootLayout->addStretch();
     rootLayout->addLayout(hCenter);
     rootLayout->addStretch();
+    
+    // 底部水平布局：左侧权限管理按钮 + 右侧伸展
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    bottomLayout->addWidget(m_permissionButton);
+    bottomLayout->addStretch();
+    rootLayout->addLayout(bottomLayout);
+    rootLayout->setContentsMargins(20, 20, 20, 20);
 
     setLayout(rootLayout);
 }
@@ -98,24 +115,87 @@ void MainContentWidget::applyStyles()
         "#centerPanel { background: transparent; }"
 
         /* 功能按钮：与登录界面按钮相同的样式 */
-        "#functionButton {"
+        "QPushButton[objectName^=\"functionButton\"] {"
             "padding: 0 20px;"
             "border-radius: 10px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
         "}"
-        "#functionButton:hover {"
+        "QPushButton[objectName^=\"functionButton\"]:hover {"
             "background: #5B9BD5;"
         "}"
-        "#functionButton:pressed {"
+        "QPushButton[objectName^=\"functionButton\"]:pressed {"
             "background: #4A8BC4;"
         "}"
-        "#functionButton:focus {"
+        "QPushButton[objectName^=\"functionButton\"]:focus {"
             "outline: none;"
             "border: none;"
         "}"
+        /* 禁用状态的按钮样式（灰色） */
+        "QPushButton[objectName^=\"functionButton\"]:disabled {"
+            "background: #CCCCCC;"
+            "color: #888888;"
+        "}"
+        /* 权限管理按钮样式 */
+        "#permissionButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #8B7355;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+        "}"
+        "#permissionButton:hover {"
+            "background: #7A6344;"
+        "}"
+        "#permissionButton:pressed {"
+            "background: #6A5334;"
+        "}"
     );
+}
+
+void MainContentWidget::updateButtonsByPermissions(AuthManager *authManager, const QString &username)
+{
+    if (!authManager) {
+        qDebug() << "AuthManager为空，无法更新按钮权限";
+        return;
+    }
+    
+    m_authManager = authManager;
+    m_currentUsername = username;
+    
+    // 检查是否是管理员（adminjmh）
+    bool isAdmin = (username == "adminjmh");
+    
+    // 管理员显示权限管理按钮
+    if (m_permissionButton) {
+        m_permissionButton->setVisible(isAdmin);
+    }
+    
+    // 获取用户的功能权限列表
+    QList<int> permissions = authManager->getUserFunctionPermissions(username);
+    qDebug() << "用户" << username << "的权限列表:" << permissions;
+    
+    // 更新每个按钮的状态
+    updateButtonState(m_functionButton1, permissions.contains(1));
+    updateButtonState(m_functionButton2, permissions.contains(2));
+    updateButtonState(m_functionButton3, permissions.contains(3));
+    updateButtonState(m_functionButton4, permissions.contains(4));
+    updateButtonState(m_functionButton5, permissions.contains(5));
+}
+
+void MainContentWidget::onPermissionManagementClicked()
+{
+    emit permissionManagementRequested();
+}
+
+void MainContentWidget::updateButtonState(QPushButton *button, bool enabled)
+{
+    if (!button) return;
+    
+    // 直接设置按钮的启用/禁用状态，样式表会自动应用
+    button->setEnabled(enabled);
 }
 
 void MainContentWidget::setBackgroundImage()

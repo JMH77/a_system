@@ -17,7 +17,8 @@ SOURCES += \
     main.cpp \
     widgets/maincontentwidget.cpp \
     mainwindow.cpp \
-    widgets/registerwidget.cpp
+    widgets/registerwidget.cpp \
+    widgets/permissionmanagementwidget.cpp
 
 
 HEADERS += \
@@ -28,7 +29,8 @@ HEADERS += \
     widgets/loginwidget.h \
     widgets/maincontentwidget.h \
     mainwindow.h \
-    widgets/registerwidget.h
+    widgets/registerwidget.h \
+    widgets/permissionmanagementwidget.h
 
 
 
