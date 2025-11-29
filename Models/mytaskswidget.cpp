@@ -104,8 +104,13 @@ void MyTasksWidget::loadMyTasks()
         return;
     }
     
-    // 加载分配给当前用户的工单（执行人员）
-    m_currentTasks = m_workOrderManager->getWorkOrdersByAssignee(m_currentUsername);
+    // 如果是adminjmh管理员，加载所有工单；否则只加载分配给当前用户的工单
+    bool isAdmin = (m_currentUsername == "adminjmh");
+    if (isAdmin) {
+        m_currentTasks = m_workOrderManager->getAllWorkOrders(m_currentUsername, true);
+    } else {
+        m_currentTasks = m_workOrderManager->getWorkOrdersByAssignee(m_currentUsername);
+    }
     
     if (!m_workOrderManager->getLastError().isEmpty()) {
         QMessageBox::warning(this, "加载失败", QString("加载任务失败：%1").arg(m_workOrderManager->getLastError()));
@@ -168,9 +173,16 @@ void MyTasksWidget::displayTasks(const QList<WorkOrderData> &tasks)
         completeButton->setProperty("row", row);  // 存储行号
         
         // 只有状态为"处理中"的工单才显示完成按钮
+        // adminjmh管理员可以操作所有状态的工单（但按钮文本根据状态变化）
+        bool isAdmin = (m_currentUsername == "adminjmh");
         if (data.status == "处理中") {
             completeButton->setEnabled(true);
+            completeButton->setText("完成");
             connect(completeButton, &QPushButton::clicked, this, &MyTasksWidget::onCompleteButtonClicked);
+        } else if (isAdmin && (data.status == "待验收" || data.status == "已完成")) {
+            // 管理员可以看到所有工单，对于已完成或待验收的工单，按钮显示相应状态但不可操作
+            completeButton->setEnabled(false);
+            completeButton->setText(data.status == "已完成" ? "已完成" : "待验收");
         } else {
             completeButton->setEnabled(false);
             completeButton->setText("已完成" == data.status ? "已完成" : "待验收");

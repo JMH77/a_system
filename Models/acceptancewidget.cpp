@@ -104,8 +104,13 @@ void AcceptanceWidget::loadAcceptanceTasks()
         return;
     }
     
-    // 加载分配给当前用户验收的工单
-    m_currentTasks = m_workOrderManager->getWorkOrdersByAcceptor(m_currentUsername);
+    // 如果是adminjmh管理员，加载所有工单；否则只加载分配给当前用户验收的工单
+    bool isAdmin = (m_currentUsername == "adminjmh");
+    if (isAdmin) {
+        m_currentTasks = m_workOrderManager->getAllWorkOrders(m_currentUsername, true);
+    } else {
+        m_currentTasks = m_workOrderManager->getWorkOrdersByAcceptor(m_currentUsername);
+    }
     
     if (!m_workOrderManager->getLastError().isEmpty()) {
         QMessageBox::warning(this, "加载失败", QString("加载验收任务失败：%1").arg(m_workOrderManager->getLastError()));
