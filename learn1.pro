@@ -18,7 +18,18 @@ SOURCES += \
     widgets/maincontentwidget.cpp \
     mainwindow.cpp \
     widgets/registerwidget.cpp \
-    widgets/permissionmanagementwidget.cpp
+    widgets/permissionmanagementwidget.cpp \
+    Models/workordermanager.cpp \
+    Models/sparepartsmanager.cpp \
+    Models/workordermanagementwidget.cpp \
+    Models/newworkorderdialog.cpp \
+    Models/assignworkorderdialog.cpp \
+    Models/editworkorderdialog.cpp \
+    Models/newconsumptiondialog.cpp \
+    Models/mytaskswidget.cpp \
+    Models/acceptancewidget.cpp \
+    Models/sparepartsconsumptionwidget.cpp \
+    Models/logreportwidget.cpp
 
 
 HEADERS += \
@@ -30,7 +41,18 @@ HEADERS += \
     widgets/maincontentwidget.h \
     mainwindow.h \
     widgets/registerwidget.h \
-    widgets/permissionmanagementwidget.h
+    widgets/permissionmanagementwidget.h \
+    Models/workordermanager.h \
+    Models/sparepartsmanager.h \
+    Models/workordermanagementwidget.h \
+    Models/newworkorderdialog.h \
+    Models/assignworkorderdialog.h \
+    Models/editworkorderdialog.h \
+    Models/newconsumptiondialog.h \
+    Models/mytaskswidget.h \
+    Models/acceptancewidget.h \
+    Models/sparepartsconsumptionwidget.h \
+    Models/logreportwidget.h
 
 
 

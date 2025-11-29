@@ -11,6 +11,11 @@
 #include "widgets/registerwidget.h"
 #include "widgets/maincontentwidget.h"
 #include "widgets/permissionmanagementwidget.h"
+#include "Models/workordermanagementwidget.h"
+#include "Models/mytaskswidget.h"
+#include "Models/acceptancewidget.h"
+#include "Models/sparepartsconsumptionwidget.h"
+#include "Models/logreportwidget.h"
 
 
 
@@ -44,6 +49,9 @@ private:
     LoginWidget *m_loginWidget;
     RegisterWidget *m_registerWidget;
     MainContentWidget *m_mainContentWidget;
+    
+    // 当前登录用户名
+    QString m_currentUsername;
 };
 #endif // MAINWINDOW_H
 

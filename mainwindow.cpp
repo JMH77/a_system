@@ -119,6 +119,9 @@ void MainWindow::connections()
 
     //连接登录成功信号
     connect(m_loginWidget, &LoginWidget::loginSuccess, this, [this](const QString &username){
+        // 保存当前登录用户名
+        m_currentUsername = username;
+        
         // 根据用户权限更新主界面按钮状态
         m_mainContentWidget->updateButtonsByPermissions(m_authManager, username);
         
@@ -142,11 +145,58 @@ void MainWindow::connections()
     
     // 连接退出登录信号
     connect(m_mainContentWidget, &MainContentWidget::logoutRequested, this, [this](){
+        // 清空当前用户名
+        m_currentUsername.clear();
         // 清空登录界面的输入框
         m_loginWidget->clearInputFields();
         // 切换到登录页面
         m_stackedWidget->setCurrentIndex(0);
         this->setWindowTitle("登录");
+    });
+    
+    // 连接功能一信号（工单管理）
+    connect(m_mainContentWidget, &MainContentWidget::function1Requested, this, [this](){
+        WorkOrderManagementWidget *widget = new WorkOrderManagementWidget(m_authManager, m_currentUsername, this);
+        widget->setAttribute(Qt::WA_DeleteOnClose);
+        widget->setWindowTitle("工单管理");
+        widget->resize(1000, 700);
+        widget->show();
+    });
+    
+    // 连接功能二信号（我的任务）
+    connect(m_mainContentWidget, &MainContentWidget::function2Requested, this, [this](){
+        MyTasksWidget *widget = new MyTasksWidget(m_authManager, m_currentUsername, this);
+        widget->setAttribute(Qt::WA_DeleteOnClose);
+        widget->setWindowTitle("我的任务");
+        widget->resize(1000, 700);
+        widget->show();
+    });
+    
+    // 连接功能三信号（验收任务）
+    connect(m_mainContentWidget, &MainContentWidget::function3Requested, this, [this](){
+        AcceptanceWidget *widget = new AcceptanceWidget(m_authManager, m_currentUsername, this);
+        widget->setAttribute(Qt::WA_DeleteOnClose);
+        widget->setWindowTitle("验收任务");
+        widget->resize(1000, 700);
+        widget->show();
+    });
+    
+    // 连接功能四信号（备件消耗）
+    connect(m_mainContentWidget, &MainContentWidget::function4Requested, this, [this](){
+        SparePartsConsumptionWidget *widget = new SparePartsConsumptionWidget(m_authManager, m_currentUsername, this);
+        widget->setAttribute(Qt::WA_DeleteOnClose);
+        widget->setWindowTitle("备件消耗");
+        widget->resize(1000, 700);
+        widget->show();
+    });
+    
+    // 连接功能五信号（日志报告）
+    connect(m_mainContentWidget, &MainContentWidget::function5Requested, this, [this](){
+        LogReportWidget *widget = new LogReportWidget(m_authManager, m_currentUsername, this);
+        widget->setAttribute(Qt::WA_DeleteOnClose);
+        widget->setWindowTitle("日志报告");
+        widget->resize(1000, 700);
+        widget->show();
     });
 
     //连接登录失败信号
