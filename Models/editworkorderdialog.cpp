@@ -103,8 +103,40 @@ void EditWorkOrderDialog::applyStyles()
     m_equipIdEdit->setMinimumHeight(35);
     m_shipIdEdit->setMinimumHeight(35);
     m_planIdEdit->setMinimumHeight(35);
-    m_okButton->setMinimumSize(80, 35);
-    m_cancelButton->setMinimumSize(80, 35);
+    m_okButton->setMinimumSize(100, 35);
+    m_cancelButton->setMinimumSize(100, 35);
+    
+    // 设置按钮蓝色样式，与主系统一致
+    this->setStyleSheet(
+        "QPushButton#okButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #6CA6CD;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+        "}"
+        "QPushButton#okButton:hover {"
+            "background: #5B9BD5;"
+        "}"
+        "QPushButton#okButton:pressed {"
+            "background: #4A8BC4;"
+        "}"
+        "QPushButton#cancelButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #CCCCCC;"
+            "color: #333333;"
+            "font-size: 12px;"
+        "}"
+        "QPushButton#cancelButton:hover {"
+            "background: #BBBBBB;"
+        "}"
+        "QPushButton#cancelButton:pressed {"
+            "background: #AAAAAA;"
+        "}"
+    );
 }
 
 void EditWorkOrderDialog::loadWorkOrderData()

@@ -59,7 +59,8 @@ void AcceptanceWidget::setupUI()
     m_acceptanceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_acceptanceTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_acceptanceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_acceptanceTable->horizontalHeader()->setStretchLastSection(true);
+    // 设置所有列宽度相同
+    m_acceptanceTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     
     // 主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -72,6 +73,28 @@ void AcceptanceWidget::setupUI()
 void AcceptanceWidget::applyStyles()
 {
     m_searchEdit->setMinimumHeight(35);
+    
+    // 设置按钮蓝色样式，与主系统一致
+    this->setStyleSheet(
+        "QPushButton {"
+            "padding: 6px 12px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #6CA6CD;"
+            "color: #ffffff;"
+            "font-size: 11px;"
+        "}"
+        "QPushButton:hover {"
+            "background: #5B9BD5;"
+        "}"
+        "QPushButton:pressed {"
+            "background: #4A8BC4;"
+        "}"
+        "QPushButton:disabled {"
+            "background: #CCCCCC;"
+            "color: #888888;"
+        "}"
+    );
 }
 
 void AcceptanceWidget::loadAcceptanceTasks()
@@ -160,8 +183,7 @@ void AcceptanceWidget::displayTasks(const QList<WorkOrderData> &tasks)
         m_acceptanceTable->setCellWidget(row, 6, acceptButton);
     }
     
-    // 自动调整列宽
-    m_acceptanceTable->resizeColumnsToContents();
+    // 列宽已设置为均匀分布，无需调整
 }
 
 void AcceptanceWidget::onSearchTextChanged(const QString &text)

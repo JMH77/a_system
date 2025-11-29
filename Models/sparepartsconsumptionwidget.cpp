@@ -74,7 +74,8 @@ void SparePartsConsumptionWidget::setupUI()
     m_consumptionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_consumptionTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_consumptionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_consumptionTable->horizontalHeader()->setStretchLastSection(true);
+    // 设置所有列宽度相同
+    m_consumptionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     
     // 主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -88,6 +89,28 @@ void SparePartsConsumptionWidget::applyStyles()
 {
     m_newButton->setMinimumHeight(35);
     m_searchEdit->setMinimumHeight(35);
+    
+    // 设置按钮蓝色样式，与主系统一致
+    this->setStyleSheet(
+        "QPushButton#newButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #6CA6CD;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+        "}"
+        "QPushButton#newButton:hover {"
+            "background: #5B9BD5;"
+        "}"
+        "QPushButton#newButton:pressed {"
+            "background: #4A8BC4;"
+        "}"
+        "QPushButton#newButton:disabled {"
+            "background: #CCCCCC;"
+            "color: #888888;"
+        "}"
+    );
 }
 
 void SparePartsConsumptionWidget::loadConsumptions()
@@ -170,8 +193,7 @@ void SparePartsConsumptionWidget::displayConsumptions(const QList<QStringList> &
         m_consumptionTable->setItem(tableRow, 5, new QTableWidgetItem(row[5]));  // 操作人
     }
     
-    // 自动调整列宽
-    m_consumptionTable->resizeColumnsToContents();
+    // 列宽已设置为均匀分布，无需调整
 }
 
 void SparePartsConsumptionWidget::onNewConsumptionClicked()

@@ -82,13 +82,34 @@ void WorkOrderManagementWidget::setupUI()
     m_workOrderTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_workOrderTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_workOrderTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_workOrderTable->horizontalHeader()->setStretchLastSection(true);
+    // 设置所有列宽度相同
+    m_workOrderTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     
     // 连接表格选择变化信号，启用/禁用按钮
     connect(m_workOrderTable, &QTableWidget::itemSelectionChanged, this, [this]() {
         bool hasSelection = m_workOrderTable->currentRow() >= 0;
-        m_assignButton->setEnabled(hasSelection);
-        m_editButton->setEnabled(hasSelection);
+        
+        // 分配按钮的启用状态：只有"待分配"状态的工单才能被分配
+        bool canAssign = hasSelection;
+        if (hasSelection) {
+            WorkOrderData selectedOrder = getSelectedWorkOrder();
+            // 只有"待分配"状态的工单才能被分配
+            if (selectedOrder.status != "待分配") {
+                canAssign = false;
+            }
+        }
+        m_assignButton->setEnabled(canAssign);
+        
+        // 编辑按钮的启用状态需要考虑权限：如果工单已分配，只有adminjmh可以编辑
+        bool canEdit = hasSelection;
+        if (hasSelection) {
+            WorkOrderData selectedOrder = getSelectedWorkOrder();
+            // 如果工单已分配且当前用户不是adminjmh，禁用编辑按钮
+            if (!selectedOrder.assigneeId.isEmpty() && m_currentUsername != "adminjmh") {
+                canEdit = false;
+            }
+        }
+        m_editButton->setEnabled(canEdit);
     });
     
     // 连接双击事件
@@ -104,11 +125,33 @@ void WorkOrderManagementWidget::setupUI()
 
 void WorkOrderManagementWidget::applyStyles()
 {
-    // 设置样式（可根据需要调整）
+    // 设置按钮高度
     m_newButton->setMinimumHeight(35);
     m_assignButton->setMinimumHeight(35);
     m_editButton->setMinimumHeight(35);
     m_searchEdit->setMinimumHeight(35);
+    
+    // 设置按钮蓝色样式，与主系统一致
+    this->setStyleSheet(
+        "QPushButton#newButton, QPushButton#assignButton, QPushButton#editButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #6CA6CD;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+        "}"
+        "QPushButton#newButton:hover, QPushButton#assignButton:hover, QPushButton#editButton:hover {"
+            "background: #5B9BD5;"
+        "}"
+        "QPushButton#newButton:pressed, QPushButton#assignButton:pressed, QPushButton#editButton:pressed {"
+            "background: #4A8BC4;"
+        "}"
+        "QPushButton#newButton:disabled, QPushButton#assignButton:disabled, QPushButton#editButton:disabled {"
+            "background: #CCCCCC;"
+            "color: #888888;"
+        "}"
+    );
 }
 
 bool WorkOrderManagementWidget::isAdmin() const
@@ -180,8 +223,7 @@ void WorkOrderManagementWidget::displayWorkOrders(const QList<WorkOrderData> &wo
         m_workOrderTable->setItem(row, 5, assigneeItem);
     }
     
-    // 自动调整列宽
-    m_workOrderTable->resizeColumnsToContents();
+    // 列宽已设置为均匀分布，无需调整
 }
 
 void WorkOrderManagementWidget::onNewWorkOrderClicked()
@@ -254,6 +296,12 @@ void WorkOrderManagementWidget::onAssignButtonClicked()
         return;
     }
     
+    // 状态检查：只有"待分配"状态的工单才能被分配，即使管理员也不能分配已进入其他状态的工单
+    if (selectedOrder.status != "待分配") {
+        QMessageBox::warning(this, "无法分配", QString("该工单当前状态为'%1'，只有'待分配'状态的工单才能进行分配！").arg(selectedOrder.status));
+        return;
+    }
+    
     // 打开分配工单对话框（传入当前用户名作为操作人）
     AssignWorkOrderDialog dialog(m_workOrderManager, m_authManager, 
                                  selectedOrder.orderId, 
@@ -278,6 +326,12 @@ void WorkOrderManagementWidget::onEditButtonClicked()
     
     if (!m_workOrderManager) {
         QMessageBox::warning(this, "错误", "工单管理器未初始化！");
+        return;
+    }
+    
+    // 权限检查：如果工单已分配（有执行人员），只有adminjmh可以编辑
+    if (!selectedOrder.assigneeId.isEmpty() && m_currentUsername != "adminjmh") {
+        QMessageBox::warning(this, "权限不足", "该工单已分配，只有管理员可以编辑！");
         return;
     }
     

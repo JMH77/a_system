@@ -29,6 +29,7 @@ private slots:
 
 private:
     void setupUI();
+    void applyStyles();
     void loadRelatedWorkOrders();  // 加载当前用户相关的工单列表
     bool validateInput();
 

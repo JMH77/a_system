@@ -26,6 +26,7 @@ private slots:
 
 private:
     void setupUI();
+    void applyStyles();
     void loadUsers();
     bool validateInput();
 

@@ -119,7 +119,8 @@ void NewWorkOrderDialog::setupUI()
     m_spareTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_spareTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_spareTable->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
-    m_spareTable->horizontalHeader()->setStretchLastSection(true);
+    // 设置所有列宽度相同
+    m_spareTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_spareTable->setMaximumHeight(150);
     
     // 备件操作按钮
@@ -127,6 +128,9 @@ void NewWorkOrderDialog::setupUI()
     m_addSpareButton = new QPushButton("添加备件", this);
     m_removeSpareButton = new QPushButton("删除选中", this);
     m_removeSpareButton->setEnabled(false);
+    // 设置按钮大小
+    m_addSpareButton->setMinimumSize(100, 35);
+    m_removeSpareButton->setMinimumSize(100, 35);
     connect(m_addSpareButton, &QPushButton::clicked, this, &NewWorkOrderDialog::onAddSpareClicked);
     connect(m_removeSpareButton, &QPushButton::clicked, this, &NewWorkOrderDialog::onRemoveSpareClicked);
     connect(m_spareTable, &QTableWidget::itemSelectionChanged, this, [this]() {
@@ -167,13 +171,63 @@ void NewWorkOrderDialog::setupUI()
 
 void NewWorkOrderDialog::applyStyles()
 {
-    // 设置样式（可根据需要调整）
+    // 设置输入框高度
     m_titleEdit->setMinimumHeight(35);
     m_equipIdEdit->setMinimumHeight(35);
     m_shipIdEdit->setMinimumHeight(35);
     m_planIdEdit->setMinimumHeight(35);
-    m_okButton->setMinimumSize(80, 35);
-    m_cancelButton->setMinimumSize(80, 35);
+    m_okButton->setMinimumSize(100, 35);
+    m_cancelButton->setMinimumSize(100, 35);
+    
+    // 设置按钮蓝色样式，与主系统一致
+    this->setStyleSheet(
+        "QPushButton#okButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #6CA6CD;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+        "}"
+        "QPushButton#okButton:hover {"
+            "background: #5B9BD5;"
+        "}"
+        "QPushButton#okButton:pressed {"
+            "background: #4A8BC4;"
+        "}"
+        "QPushButton#cancelButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #CCCCCC;"
+            "color: #333333;"
+            "font-size: 12px;"
+        "}"
+        "QPushButton#cancelButton:hover {"
+            "background: #BBBBBB;"
+        "}"
+        "QPushButton#cancelButton:pressed {"
+            "background: #AAAAAA;"
+        "}"
+        "QPushButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #6CA6CD;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+        "}"
+        "QPushButton:hover {"
+            "background: #5B9BD5;"
+        "}"
+        "QPushButton:pressed {"
+            "background: #4A8BC4;"
+        "}"
+        "QPushButton:disabled {"
+            "background: #CCCCCC;"
+            "color: #888888;"
+        "}"
+    );
 }
 
 bool NewWorkOrderDialog::validateInput()

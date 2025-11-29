@@ -486,6 +486,18 @@ bool WorkOrderManager::assignWorkOrder(const QString &orderId, const QString &as
         return false;
     }
     
+    // 获取工单当前状态，只有"待分配"状态的工单才能被分配
+    WorkOrderData currentOrder = getWorkOrderById(orderId);
+    if (currentOrder.orderId.isEmpty()) {
+        m_lastError = "工单不存在";
+        return false;
+    }
+    
+    if (currentOrder.status != "待分配") {
+        m_lastError = QString("工单当前状态为'%1'，只有'待分配'状态的工单才能进行分配！").arg(currentOrder.status);
+        return false;
+    }
+    
     QSqlDatabase db = m_dbManager->getDatabase();
     QSqlQuery query(db);
     
