@@ -1,4 +1,5 @@
 #include "loginwidget.h"
+#include "../auth/authmanager.h"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -18,7 +19,9 @@
 #include <QDir>
 #include <QMessageBox>
 
-LoginWidget::LoginWidget(QWidget *parent) : QWidget(parent)
+LoginWidget::LoginWidget(QWidget *parent) 
+    : QWidget(parent)
+    , m_authManager(nullptr)
 {
 	setupUI();
 	applyStyles();
@@ -30,6 +33,11 @@ LoginWidget::LoginWidget(QWidget *parent) : QWidget(parent)
     connect(m_loginButton, &QPushButton::clicked, this, &LoginWidget::onLoginButtonClicked);
     //点击注册按钮发出信号(让主窗口中的堆叠窗口收到并切换界面)
     connect(m_registerButton, &QPushButton::clicked, this, &LoginWidget::onRegisterButtonClicked);
+}
+
+void LoginWidget::setAuthManager(AuthManager *authManager)
+{
+    m_authManager = authManager;
 }
 
 void LoginWidget::setupUI()
@@ -293,14 +301,32 @@ void LoginWidget::onRegisterButtonClicked()
 
 void LoginWidget::onLoginButtonClicked()
 {
+	// 1. 验证输入格式
 	if(!validateInput()){
         QMessageBox::information(this, "格式错误", "用户名或密码格式错误！");
+        return;
 	}
+	
+	// 2. 获取用户输入
 	QString username = m_usernameEdit->text().trimmed();
 	QString password = m_passwordEdit->text().trimmed();
-	//todo:验证用户名和密码是否正确
-	if(true){
+	
+	// 3. 检查认证管理器是否可用
+	if (!m_authManager) {
+		QMessageBox::warning(this, "错误", "认证管理器未设置！");
+		emit loginFailed("系统错误：认证管理器未设置");
+		return;
+	}
+	
+	// 4. 调用认证管理器验证登录
+	if (m_authManager->login(username, password)) {
+		// 登录成功
 		emit loginSuccess(username);
+	} else {
+		// 登录失败，获取错误信息
+		QString errorMsg = m_authManager->getLastError();
+		QMessageBox::warning(this, "登录失败", errorMsg);
+		emit loginFailed(errorMsg);
 	}
 }
 

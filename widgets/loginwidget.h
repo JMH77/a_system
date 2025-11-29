@@ -3,11 +3,14 @@
 #include <QWidget>
 #include <QPixmap>
 
+class AuthManager;
+
 class LoginWidget :public QWidget
 {
     Q_OBJECT
 public:
     LoginWidget(QWidget *parent = nullptr);
+    void setAuthManager(AuthManager *authManager);
 
 	void setBackgroundImage();
 
@@ -41,6 +44,7 @@ private:
 	class QPushButton *m_registerButton;
 	class QWidget *m_centerPanel;
 	QPixmap m_bgPixmap;
+	AuthManager *m_authManager;  // 认证管理器
 };
 
 #endif // LOGINWIDGET_H
