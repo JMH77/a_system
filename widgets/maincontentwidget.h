@@ -22,6 +22,12 @@ signals:
     void permissionManagementRequested();
     // 退出登录信号
     void logoutRequested();
+    // 功能按钮点击信号
+    void function1Requested();  // 工单管理
+    void function2Requested();  // 我的任务
+    void function3Requested();  // 验收任务
+    void function4Requested();  // 备件消耗
+    void function5Requested();  // 日志报告
 
 protected:
     // 重写paintEvent事件，绘制背景图
@@ -30,6 +36,11 @@ protected:
 private slots:
     void onPermissionManagementClicked();
     void onLogoutButtonClicked();
+    void onFunction1Clicked();
+    void onFunction2Clicked();
+    void onFunction3Clicked();
+    void onFunction4Clicked();
+    void onFunction5Clicked();
 
 private:
     void setupUI();

@@ -33,11 +33,11 @@ MainContentWidget::MainContentWidget(QWidget *parent)
 void MainContentWidget::setupUI()
 {
     // 创建5个功能按钮
-    m_functionButton1 = new QPushButton("功能一", this);
-    m_functionButton2 = new QPushButton("功能二", this);
-    m_functionButton3 = new QPushButton("功能三", this);
-    m_functionButton4 = new QPushButton("功能四", this);
-    m_functionButton5 = new QPushButton("功能五", this);
+    m_functionButton1 = new QPushButton("工单管理", this);
+    m_functionButton2 = new QPushButton("我的任务", this);
+    m_functionButton3 = new QPushButton("验收任务", this);
+    m_functionButton4 = new QPushButton("备件消耗", this);
+    m_functionButton5 = new QPushButton("日志报告", this);
     
     // 创建权限管理按钮（初始隐藏，仅管理员可见）
     m_permissionButton = new QPushButton("权限管理", this);
@@ -56,6 +56,13 @@ void MainContentWidget::setupUI()
     m_functionButton3->setObjectName("functionButton3");
     m_functionButton4->setObjectName("functionButton4");
     m_functionButton5->setObjectName("functionButton5");
+    
+    // 连接功能按钮的点击事件
+    connect(m_functionButton1, &QPushButton::clicked, this, &MainContentWidget::onFunction1Clicked);
+    connect(m_functionButton2, &QPushButton::clicked, this, &MainContentWidget::onFunction2Clicked);
+    connect(m_functionButton3, &QPushButton::clicked, this, &MainContentWidget::onFunction3Clicked);
+    connect(m_functionButton4, &QPushButton::clicked, this, &MainContentWidget::onFunction4Clicked);
+    connect(m_functionButton5, &QPushButton::clicked, this, &MainContentWidget::onFunction5Clicked);
 
     // 创建垂直布局放置按钮
     QVBoxLayout *buttonsLayout = new QVBoxLayout();
@@ -241,6 +248,31 @@ void MainContentWidget::onLogoutButtonClicked()
     if (reply == QMessageBox::Yes) {
         emit logoutRequested();
     }
+}
+
+void MainContentWidget::onFunction1Clicked()
+{
+    emit function1Requested();
+}
+
+void MainContentWidget::onFunction2Clicked()
+{
+    emit function2Requested();
+}
+
+void MainContentWidget::onFunction3Clicked()
+{
+    emit function3Requested();
+}
+
+void MainContentWidget::onFunction4Clicked()
+{
+    emit function4Requested();
+}
+
+void MainContentWidget::onFunction5Clicked()
+{
+    emit function5Requested();
 }
 
 void MainContentWidget::updateButtonState(QPushButton *button, bool enabled)
