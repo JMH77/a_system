@@ -261,6 +261,38 @@ QList<userinfo> AuthManager::getAllUsers() const
     return users;
 }
 
+// 根据工单角色获取用户列表
+QList<userinfo> AuthManager::getUsersByWorkOrderRole(const QString &role) const
+{
+    QList<userinfo> users;
+    
+    if (!m_dbManager || !m_dbManager->isConnected()) {
+        return users;
+    }
+    
+    QSqlDatabase db = m_dbManager->getDatabase();
+    QSqlQuery query(db);
+    
+    query.prepare("SELECT username, email, name FROM NowUsers WHERE work_order_role = ? ORDER BY username");
+    query.addBindValue(role);
+    
+    if (query.exec()) {
+        while (query.next()) {
+            userinfodata data;
+            data.username = query.value(0).toString();
+            data.email = query.value(1).toString();
+            data.name = query.value(2).toString();
+            
+            userinfo user;
+            user.setUserData(data);
+            users.append(user);
+        }
+    }
+    query.finish();
+    
+    return users;
+}
+
 // 获取数据库管理器
 databasemanager* AuthManager::getDatabaseManager() const
 {

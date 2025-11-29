@@ -7,6 +7,7 @@
 #include <QHeaderView>
 #include <QTableWidgetItem>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QMessageBox>
 #include <QDebug>
 #include <QSqlQuery>
@@ -29,9 +30,9 @@ void PermissionManagementWidget::setupUI()
 {
     // 创建表格
     m_userTable = new QTableWidget(this);
-    m_userTable->setColumnCount(7);
+    m_userTable->setColumnCount(8);  // 增加了角色列
     QStringList headers;
-    headers << "用户名" << "邮箱" << "功能一" << "功能二" << "功能三" << "功能四" << "功能五";
+    headers << "用户名" << "邮箱" << "角色" << "功能一" << "功能二" << "功能三" << "功能四" << "功能五";
     m_userTable->setHorizontalHeaderLabels(headers);
     m_userTable->setSelectionMode(QAbstractItemView::NoSelection);  // 禁用选择
     m_userTable->setSelectionBehavior(QAbstractItemView::SelectItems);  // 即使设置了NoSelection，这个也要设置
@@ -41,6 +42,7 @@ void PermissionManagementWidget::setupUI()
     // 设置列宽调整策略
     m_userTable->horizontalHeader()->setSectionResizeMode(COL_USERNAME, QHeaderView::Fixed);
     m_userTable->horizontalHeader()->setSectionResizeMode(COL_EMAIL, QHeaderView::Fixed);
+    m_userTable->horizontalHeader()->setSectionResizeMode(COL_ROLE, QHeaderView::Fixed);
     for (int i = COL_FUNC1; i <= COL_FUNC5; ++i) {
         m_userTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
     }
@@ -79,9 +81,9 @@ void PermissionManagementWidget::loadUsers()
     
     QSqlDatabase db = dbManager->getDatabase();
     
-    // 查询所有用户（排除adminjmh，因为管理员权限不能修改）
+    // 查询所有用户（排除adminjmh，因为管理员权限不能修改），包括工单角色
     QSqlQuery query(db);
-    query.prepare("SELECT userid, username, email FROM NowUsers WHERE username != ? ORDER BY username");
+    query.prepare("SELECT userid, username, email, work_order_role FROM NowUsers WHERE username != ? ORDER BY username");
     query.addBindValue("adminjmh");
     
     QList<QPair<int, QString>> users;  // userid, username
@@ -90,6 +92,7 @@ void PermissionManagementWidget::loadUsers()
             int userId = query.value(0).toInt();
             QString username = query.value(1).toString();
             QString email = query.value(2).toString();
+            QString workOrderRole = query.value(3).toString();  // 工单角色
             users.append(qMakePair(userId, username));
             
             // 添加到表格
@@ -106,6 +109,28 @@ void PermissionManagementWidget::loadUsers()
             emailItem->setFlags(emailItem->flags() & ~Qt::ItemIsEditable & ~Qt::ItemIsSelectable);
             m_userTable->setItem(row, COL_EMAIL, emailItem);
             
+            // 角色下拉框
+            QComboBox *roleCombo = new QComboBox(this);
+            roleCombo->addItem("无", "");
+            roleCombo->addItem("分配人员", "分配人员");
+            roleCombo->addItem("执行人员", "执行人员");
+            roleCombo->addItem("检验人员", "检验人员");
+            
+            // 设置当前角色
+            int roleIndex = roleCombo->findData(workOrderRole);
+            if (roleIndex >= 0) {
+                roleCombo->setCurrentIndex(roleIndex);
+            } else {
+                roleCombo->setCurrentIndex(0);  // 默认为"无"
+            }
+            
+            // 连接角色变化信号，自动勾选对应的功能权限
+            connect(roleCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, row]() {
+                updatePermissionsByRole(row);
+            });
+            
+            m_userTable->setCellWidget(row, COL_ROLE, roleCombo);
+            
             // 获取用户的功能权限
             QList<int> permissions = m_authManager->getUserFunctionPermissions(username);
             
@@ -119,12 +144,62 @@ void PermissionManagementWidget::loadUsers()
     }
     
     // 设置列宽
-    // 用户名和邮箱列设置固定宽度（较宽）
+    // 用户名、邮箱、角色列设置固定宽度（较宽）
     m_userTable->setColumnWidth(COL_USERNAME, 150);
     m_userTable->setColumnWidth(COL_EMAIL, 200);
+    m_userTable->setColumnWidth(COL_ROLE, 120);
     
     // 功能一到功能五列使用Stretch模式，会自动均分剩余宽度
     // 已经在setupUI中设置了Stretch模式，这里不需要再设置宽度
+}
+
+// 根据角色自动勾选对应的功能权限
+void PermissionManagementWidget::updatePermissionsByRole(int row)
+{
+    QComboBox *roleCombo = qobject_cast<QComboBox*>(m_userTable->cellWidget(row, COL_ROLE));
+    if (!roleCombo) return;
+    
+    QString role = roleCombo->currentData().toString();
+    
+    // 根据角色自动勾选功能权限
+    // 分配人员：功能一、功能四
+    // 执行人员：功能二、功能四
+    // 检验人员：功能三、功能五
+    if (role == "分配人员") {
+        QCheckBox *func1 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC1));
+        QCheckBox *func4 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC4));
+        if (func1) func1->setChecked(true);
+        if (func4) func4->setChecked(true);
+        QCheckBox *func2 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC2));
+        QCheckBox *func3 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC3));
+        QCheckBox *func5 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC5));
+        if (func2) func2->setChecked(false);
+        if (func3) func3->setChecked(false);
+        if (func5) func5->setChecked(false);
+    } else if (role == "执行人员") {
+        QCheckBox *func2 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC2));
+        QCheckBox *func4 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC4));
+        if (func2) func2->setChecked(true);
+        if (func4) func4->setChecked(true);
+        QCheckBox *func1 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC1));
+        QCheckBox *func3 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC3));
+        QCheckBox *func5 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC5));
+        if (func1) func1->setChecked(false);
+        if (func3) func3->setChecked(false);
+        if (func5) func5->setChecked(false);
+    } else if (role == "检验人员") {
+        QCheckBox *func3 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC3));
+        QCheckBox *func5 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC5));
+        if (func3) func3->setChecked(true);
+        if (func5) func5->setChecked(true);
+        QCheckBox *func1 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC1));
+        QCheckBox *func2 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC2));
+        QCheckBox *func4 = qobject_cast<QCheckBox*>(m_userTable->cellWidget(row, COL_FUNC4));
+        if (func1) func1->setChecked(false);
+        if (func2) func2->setChecked(false);
+        if (func4) func4->setChecked(false);
+    }
+    // 如果选择"无"，不自动修改权限复选框，保持原状
 }
 
 void PermissionManagementWidget::onSaveClicked()
@@ -163,6 +238,26 @@ void PermissionManagementWidget::onSaveClicked()
         userQuery.finish();
         
         if (userId <= 0) continue;
+        
+        // 更新工单角色
+        QComboBox *roleCombo = qobject_cast<QComboBox*>(m_userTable->cellWidget(i, COL_ROLE));
+        if (roleCombo) {
+            QString workOrderRole = roleCombo->currentData().toString();
+            QSqlQuery roleUpdateQuery(db);
+            roleUpdateQuery.prepare("UPDATE NowUsers SET work_order_role = ? WHERE userid = ?");
+            if (workOrderRole.isEmpty()) {
+                roleUpdateQuery.addBindValue(QVariant(QVariant::String));  // NULL
+            } else {
+                roleUpdateQuery.addBindValue(workOrderRole);
+            }
+            roleUpdateQuery.addBindValue(userId);
+            if (roleUpdateQuery.exec()) {
+                qDebug() << "更新用户角色成功:" << username << workOrderRole;
+            } else {
+                qDebug() << "更新用户角色失败:" << username << roleUpdateQuery.lastError().text();
+            }
+            roleUpdateQuery.finish();
+        }
         
         // 更新功能权限
         for (int funcId = 1; funcId <= 5; ++funcId) {

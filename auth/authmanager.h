@@ -30,6 +30,9 @@ public:
     // 获取所有用户列表（用于权限管理）
     QList<userinfo> getAllUsers() const;
     
+    // 根据工单角色获取用户列表（执行人员、验收人员）
+    QList<userinfo> getUsersByWorkOrderRole(const QString &role) const;
+    
     // 获取数据库管理器（用于权限管理对话框）
     databasemanager* getDatabaseManager() const;
     
