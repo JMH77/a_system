@@ -11,6 +11,7 @@ debug/
 out/
 build_dir/
 dist/
+cmake-build-*/  # Qt Creator CMake构建目录
 
 # 编译产物
 *.o
@@ -30,6 +31,9 @@ dist/
 *.idb
 *.sdf
 *.opensdf
+*.iobj
+*.ipdb
+*.libpdb
 
 # 构建脚本与缓存
 Makefile
@@ -38,6 +42,9 @@ Makefile.*
 *.qmake.cache
 compile_commands.json
 *.idx
+object_script.*  # Qt构建生成的object_script文件
+*.Debug/         # Qt构建的Debug目录
+*.Release/       # Qt构建的Release目录
 
 # ==============================================
 # Qt 自动生成文件
@@ -51,6 +58,12 @@ uic_*.cpp
 *.moc
 *.rcc
 *.qrc.depends
+
+# QML相关生成文件
+*.qmlc
+*.jsc
+.qmlproject.cache
+.qmlproject.user
 
 # 翻译文件相关
 *.ts
@@ -78,12 +91,17 @@ uic_*.cpp
 *.cxxflags
 *.ldflags
 .qtc_clangd/
+.qmlproject.user
 
 # VS Code
 .vscode/
+*.code-workspace
 
 # JetBrains 系列（CLion、Qt Creator 等）
 .idea/
+*.iml
+*.ipr
+*.iws
 
 # Sublime Text
 *.sublime-*
@@ -92,11 +110,21 @@ uic_*.cpp
 *.project
 *.cproject
 .csettings
+.settings/
+bin/
+tmp/
 
 # Visual Studio
 *.vcxproj.user
 *.vcxproj.filters
 *.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.opendb
+*.VC.db
+TestResults/
+_ReSharper*/
 
 # ==============================================
 # CMake 相关（若使用 CMake 构建）
@@ -108,6 +136,11 @@ cmake_install.cmake
 CTestTestfile.cmake
 build.ninja
 .ninja*
+CMakeScripts/
+Testing/
+install_manifest.txt
+compile_commands.json
+CMakeLists.txt.user*
 
 # ==============================================
 # 项目动态文件与临时文件
@@ -116,17 +149,42 @@ build.ninja
 *.db
 *.sqlite
 *.db-journal
-
+*.db-wal
+*.db-shm
 
 # 日志文件
 logs/
 *.log
+*.log.*
+*.trace
+*.dump
 
 # 系统/编辑器临时文件
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 *.swp
 *.swo
 *~
 *.bak
 *.tmp
 *.orig
+*.rej
+*.old
+*.sav
+*.backup
+
+# 压缩包
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# 本地配置文件
+*.ini.local
+*.conf.local
+config.local/
