@@ -26,6 +26,11 @@ public:
     //断开连接
     bool disconnected();
 
+    //初始化用户表
+    bool initUserTable();
+    
+    //获取数据库连接（供其他模块使用）
+    QSqlDatabase getDatabase() const;
 
 private:
     QSqlDatabase m_db;

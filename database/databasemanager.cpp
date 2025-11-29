@@ -108,6 +108,48 @@ bool databasemanager::disconnected(){
     }
 }
 
+//初始化用户表
+bool databasemanager::initUserTable()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    // 创建用户表（参考成功的达梦数据库语法）
+    QString createTableSQL = 
+        "CREATE TABLE IF NOT EXISTS NowUsers ("
+        "userid INT PRIMARY KEY IDENTITY, "
+        "username VARCHAR(100) UNIQUE NOT NULL, "
+        "password VARCHAR(255) NOT NULL, "
+        "email VARCHAR(255), "
+        "name VARCHAR(100)"
+        ")";
+    
+    QSqlQuery query(m_db);
+    if (!query.exec(createTableSQL)) {
+        QString errorText = query.lastError().text();
+        // 如果表已存在，视为成功
+        if (errorText.contains("已存在") || errorText.contains("already exists")) {
+            qDebug() << "用户表已存在，跳过创建";
+            return true;
+        }
+        m_lastError = QString("创建用户表失败: %1").arg(errorText);
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    qDebug() << "用户表初始化成功";
+    return true;
+}
+
+//获取数据库连接
+QSqlDatabase databasemanager::getDatabase() const
+{
+    return m_db;
+}
+
 
 
 

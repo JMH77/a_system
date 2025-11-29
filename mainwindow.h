@@ -6,6 +6,7 @@
 #include <QStackedWidget>
 #include "database/databasemanager.h"
 #include "config/configmanager.h"
+#include "auth/authmanager.h"
 #include "widgets/loginwidget.h"
 #include "widgets/registerwidget.h"
 #include "widgets/maincontentwidget.h"
@@ -33,6 +34,7 @@ private:
     //管理器
     configmanager *m_configManager;  // 配置管理器
     databasemanager *dbManger;       // 数据库管理器
+    AuthManager *m_authManager;      // 认证管理器
 
     // 堆叠窗口（页面容器）
     QStackedWidget *m_stackedWidget;  
