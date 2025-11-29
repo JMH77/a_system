@@ -20,6 +20,8 @@ public:
 signals:
     // 权限管理按钮点击信号
     void permissionManagementRequested();
+    // 退出登录信号
+    void logoutRequested();
 
 protected:
     // 重写paintEvent事件，绘制背景图
@@ -27,6 +29,7 @@ protected:
 
 private slots:
     void onPermissionManagementClicked();
+    void onLogoutButtonClicked();
 
 private:
     void setupUI();
@@ -44,6 +47,7 @@ private:
     QPushButton *m_functionButton4;
     QPushButton *m_functionButton5;
     QPushButton *m_permissionButton;  // 权限管理按钮
+    QPushButton *m_logoutButton;  // 退出登录按钮
     QPixmap m_bgPixmap;
 };
 

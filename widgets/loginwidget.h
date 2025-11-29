@@ -11,6 +11,7 @@ class LoginWidget :public QWidget
 public:
     LoginWidget(QWidget *parent = nullptr);
     void setAuthManager(AuthManager *authManager);
+    void clearInputFields();  // 清空所有输入框
 
 	void setBackgroundImage();
 

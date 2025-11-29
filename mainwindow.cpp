@@ -115,6 +115,15 @@ void MainWindow::connections()
         // 这里需要从登录信息中获取，暂时使用adminjmh（因为只有管理员能打开这个对话框）
         m_mainContentWidget->updateButtonsByPermissions(m_authManager, "adminjmh");
     });
+    
+    // 连接退出登录信号
+    connect(m_mainContentWidget, &MainContentWidget::logoutRequested, this, [this](){
+        // 清空登录界面的输入框
+        m_loginWidget->clearInputFields();
+        // 切换到登录页面
+        m_stackedWidget->setCurrentIndex(0);
+        this->setWindowTitle("登录");
+    });
 
     //连接登录失败信号
     connect(m_loginWidget, &LoginWidget::loginFailed, this, [](const QString &errorMessage){
@@ -148,6 +157,8 @@ void MainWindow::connections()
         // 尝试注册用户
         if (m_authManager->registerUser(user)) {
             QMessageBox::information(this, "注册成功", "注册成功，请返回登录！");
+            // 清空注册界面的输入框
+            m_registerWidget->clearInputFields();
             // 切换到登录页面
             m_stackedWidget->setCurrentIndex(0);
             this->setWindowTitle("登录");

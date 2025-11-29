@@ -9,6 +9,7 @@ class RegisterWidget : public QWidget
     Q_OBJECT
 public:
     RegisterWidget(QWidget *parent = nullptr);
+    void clearInputFields();  // 清空所有输入框
 
 signals:
     void backToLogin();

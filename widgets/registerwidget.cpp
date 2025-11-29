@@ -301,6 +301,14 @@ void RegisterWidget::onBackButtonClicked()
     emit backToLogin();
 }
 
+void RegisterWidget::clearInputFields()
+{
+    m_usernameEdit->clear();
+    m_passwordEdit->clear();
+    m_nameEdit->clear();
+    m_emailEdit->clear();
+}
+
 void RegisterWidget::onRegisterButtonClicked()
 {
     if(!validateInput()){

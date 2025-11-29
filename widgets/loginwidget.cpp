@@ -40,6 +40,12 @@ void LoginWidget::setAuthManager(AuthManager *authManager)
     m_authManager = authManager;
 }
 
+void LoginWidget::clearInputFields()
+{
+    m_usernameEdit->clear();
+    m_passwordEdit->clear();
+}
+
 void LoginWidget::setupUI()
 {
 	// 创建控件

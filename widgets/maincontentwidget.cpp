@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QFont>
 #include <QDebug>
+#include <QMessageBox>
 
 MainContentWidget::MainContentWidget(QWidget *parent)
     : QWidget(parent)
@@ -22,6 +23,7 @@ MainContentWidget::MainContentWidget(QWidget *parent)
     , m_functionButton4(nullptr)
     , m_functionButton5(nullptr)
     , m_permissionButton(nullptr)
+    , m_logoutButton(nullptr)
 {
     setupUI();
     applyStyles();
@@ -42,6 +44,11 @@ void MainContentWidget::setupUI()
     m_permissionButton->setObjectName("permissionButton");
     m_permissionButton->hide();
     connect(m_permissionButton, &QPushButton::clicked, this, &MainContentWidget::onPermissionManagementClicked);
+    
+    // 创建退出登录按钮（右上角）
+    m_logoutButton = new QPushButton("退出登录", this);
+    m_logoutButton->setObjectName("logoutButton");
+    connect(m_logoutButton, &QPushButton::clicked, this, &MainContentWidget::onLogoutButtonClicked);
 
     // 设置按钮对象名，便于样式设置和权限控制
     m_functionButton1->setObjectName("functionButton1");
@@ -73,8 +80,14 @@ void MainContentWidget::setupUI()
     hCenter->addWidget(centerPanel);
     hCenter->addStretch();
 
-    // 顶层垂直布局：上方伸展 + 中间按钮 + 下方伸展 + 权限管理按钮（左下角）
+    // 顶层水平布局：左侧伸展 + 右上角退出登录按钮
+    QHBoxLayout *topLayout = new QHBoxLayout();
+    topLayout->addStretch();
+    topLayout->addWidget(m_logoutButton);
+    
+    // 顶层垂直布局：顶部退出登录按钮 + 上方伸展 + 中间按钮 + 下方伸展 + 权限管理按钮（左下角）
     QVBoxLayout *rootLayout = new QVBoxLayout();
+    rootLayout->addLayout(topLayout);
     rootLayout->addStretch();
     rootLayout->addLayout(hCenter);
     rootLayout->addStretch();
@@ -100,6 +113,14 @@ void MainContentWidget::applyStyles()
     m_functionButton3->setFont(buttonFont);
     m_functionButton4->setFont(buttonFont);
     m_functionButton5->setFont(buttonFont);
+    
+    // 设置退出登录按钮字体
+    QFont logoutButtonFont = font();
+    logoutButtonFont.setPointSize(12);
+    logoutButtonFont.setBold(true);
+    if (m_logoutButton) {
+        m_logoutButton->setFont(logoutButtonFont);
+    }
 
     // 设置按钮尺寸 - 做得更大一些
     int buttonWidth = 380;
@@ -152,6 +173,21 @@ void MainContentWidget::applyStyles()
         "#permissionButton:pressed {"
             "background: #6A5334;"
         "}"
+        /* 退出登录按钮样式 */
+        "#logoutButton {"
+            "padding: 8px 16px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #DC143C;"
+            "color: #ffffff;"
+            "font-size: 12px;"
+        "}"
+        "#logoutButton:hover {"
+            "background: #B22222;"
+        "}"
+        "#logoutButton:pressed {"
+            "background: #8B0000;"
+        "}"
     );
 }
 
@@ -188,6 +224,23 @@ void MainContentWidget::updateButtonsByPermissions(AuthManager *authManager, con
 void MainContentWidget::onPermissionManagementClicked()
 {
     emit permissionManagementRequested();
+}
+
+void MainContentWidget::onLogoutButtonClicked()
+{
+    // 显示确认对话框
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this,
+        "确认退出",
+        "确定要退出登录吗？",
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+    );
+    
+    // 如果用户选择"是"，则发出退出登录信号
+    if (reply == QMessageBox::Yes) {
+        emit logoutRequested();
+    }
 }
 
 void MainContentWidget::updateButtonState(QPushButton *button, bool enabled)
