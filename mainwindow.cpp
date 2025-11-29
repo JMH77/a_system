@@ -41,7 +41,31 @@ MainWindow::MainWindow(QWidget *parent)
             QString errorMsg = QString("用户表初始化失败：%1").arg(dbManger->getLastError());
             QMessageBox::warning(this, "用户表初始化失败", errorMsg);
         } else {
-            dbConnected = true;
+            // 初始化用户权限表
+            if (!dbManger->initUserPermissionsTable()) {
+                QString errorMsg = QString("用户权限表初始化失败：%1").arg(dbManger->getLastError());
+                QMessageBox::warning(this, "用户权限表初始化失败", errorMsg);
+            } else {
+                // 扩展用户表，添加工单角色字段
+                dbManger->addWorkOrderRoleToUserTable();
+                
+                // 初始化工单相关表
+                if (!dbManger->initWorkOrderTable()) {
+                    QString errorMsg = QString("工单主表初始化失败：%1").arg(dbManger->getLastError());
+                    QMessageBox::warning(this, "工单主表初始化失败", errorMsg);
+                } else if (!dbManger->initWorkOrderSpareTable()) {
+                    QString errorMsg = QString("工单备件消耗表初始化失败：%1").arg(dbManger->getLastError());
+                    QMessageBox::warning(this, "工单备件消耗表初始化失败", errorMsg);
+                } else if (!dbManger->initWorkOrderReportTable()) {
+                    QString errorMsg = QString("工单检测报表表初始化失败：%1").arg(dbManger->getLastError());
+                    QMessageBox::warning(this, "工单检测报表表初始化失败", errorMsg);
+                } else if (!dbManger->initWorkOrderLogTable()) {
+                    QString errorMsg = QString("工单操作日志表初始化失败：%1").arg(dbManger->getLastError());
+                    QMessageBox::warning(this, "工单操作日志表初始化失败", errorMsg);
+                } else {
+                    dbConnected = true;
+                }
+            }
         }
     }
     

@@ -40,34 +40,18 @@ bool databasemanager::connectDatabase(){
     QString dbType = m_configManager->getDbType();
     QMap<QString, QString> dbConfig = m_configManager->getDbConfig();
 
-    //步骤4：根据数据库类型创建连接
-    QString driverName;
-    if(dbType.toUpper() == "SQLITE" || dbType.toUpper() == "QSQLITE"){
-        driverName = "QSQLITE";
-    } else if(dbType.toUpper() == "DM"){
-        driverName = "QODBC";
-    } else{
-        m_lastError = QString("不支持的数据库类型: %1").arg(dbType);
-        qDebug() << m_lastError;
-        return false;
-    }
-
+    //步骤4：只支持达梦数据库，使用QODBC驱动
+    QString driverName = "QODBC";
+    
     // 步骤5：创建数据库连接
     m_db = QSqlDatabase::addDatabase(driverName);
 
-    // 步骤6：设置连接参数
-    if (driverName == "QSQLITE") {
-        // SQLite 只需要数据库文件路径
-        QString dbName = dbConfig.value("DatabaseName", "learn1.db");
-        m_db.setDatabaseName(dbName);
-    } else {
-        // 其他数据库需要更多参数
-        m_db.setHostName(dbConfig.value("Host", "localhost"));
-        m_db.setPort(dbConfig.value("Port", "5236").toInt());
-        m_db.setDatabaseName(dbConfig.value("DatabaseName", ""));
-        m_db.setUserName(dbConfig.value("UID", ""));
-        m_db.setPassword(dbConfig.value("Password", ""));
-    }
+    // 步骤6：设置达梦数据库连接参数
+    m_db.setHostName(dbConfig.value("Host", "localhost"));
+    m_db.setPort(dbConfig.value("Port", "5236").toInt());
+    m_db.setDatabaseName(dbConfig.value("DatabaseName", ""));
+    m_db.setUserName(dbConfig.value("UID", ""));
+    m_db.setPassword(dbConfig.value("Password", ""));
 
     // 步骤7：打开连接
     if (!m_db.open()) {
@@ -238,24 +222,33 @@ bool databasemanager::initUserPermissionsTable()
     if (adminUserId > 0) {
         // 为adminjmh添加5个功能的权限（全部启用）
         for (int funcId = 1; funcId <= 5; ++funcId) {
-            QSqlQuery permQuery(m_db);
-            permQuery.prepare("INSERT INTO NowUsersPermissions (userid, function_id, enabled) VALUES (?, ?, ?)");
-            permQuery.addBindValue(adminUserId);
-            permQuery.addBindValue(funcId);
-            permQuery.addBindValue(1);  // 启用
+            // 先检查权限是否已存在
+            QSqlQuery checkPermQuery(m_db);
+            checkPermQuery.prepare("SELECT COUNT(*) FROM NowUsersPermissions WHERE userid = ? AND function_id = ?");
+            checkPermQuery.addBindValue(adminUserId);
+            checkPermQuery.addBindValue(funcId);
             
-            if (!permQuery.exec()) {
-                QString errorText = permQuery.lastError().text();
-                // 如果已存在，忽略错误
-                if (errorText.contains("唯一") || errorText.contains("UNIQUE") || 
-                    errorText.contains("重复") || errorText.contains("duplicate")) {
-                    // 权限已存在，跳过
-                } else {
-                    qDebug() << "为adminjmh添加功能" << funcId << "权限失败:" << errorText;
-
-                }
+            bool permExists = false;
+            if (checkPermQuery.exec() && checkPermQuery.next()) {
+                int count = checkPermQuery.value(0).toInt();
+                permExists = (count > 0);
             }
-            permQuery.finish();
+            checkPermQuery.finish();
+            
+            // 如果权限不存在，才插入
+            if (!permExists) {
+                QSqlQuery permQuery(m_db);
+                permQuery.prepare("INSERT INTO NowUsersPermissions (userid, function_id, enabled) VALUES (?, ?, ?)");
+                permQuery.addBindValue(adminUserId);
+                permQuery.addBindValue(funcId);
+                permQuery.addBindValue(1);  // 启用
+                
+                if (!permQuery.exec()) {
+                    QString errorText = permQuery.lastError().text();
+                    qDebug() << "为adminjmh添加功能" << funcId << "权限失败:" << errorText;
+                }
+                permQuery.finish();
+            }
         }
         
         // 提交事务
@@ -276,6 +269,216 @@ bool databasemanager::initUserPermissionsTable()
 QSqlDatabase databasemanager::getDatabase() const
 {
     return m_db;
+}
+
+//获取数据库类型（只支持达梦数据库）
+QString databasemanager::getDbType() const
+{
+    return "DM";
+}
+
+//扩展用户表，添加工单角色字段
+bool databasemanager::addWorkOrderRoleToUserTable()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    // 检查字段是否已存在（达梦数据库）
+    QSqlQuery checkQuery(m_db);
+    QString checkColumnSQL = "SELECT COUNT(*) FROM USER_TAB_COLUMNS WHERE TABLE_NAME = 'NOWUSERS' AND COLUMN_NAME = 'WORK_ORDER_ROLE'";
+    
+    bool columnExists = false;
+    if (checkQuery.exec(checkColumnSQL)) {
+        if (checkQuery.next()) {
+            columnExists = checkQuery.value(0).toInt() > 0;
+        }
+    }
+    checkQuery.finish();
+    
+    if (columnExists) {
+        qDebug() << "工单角色字段已存在，跳过添加";
+        return true;
+    }
+    
+    // 添加字段
+    QSqlQuery addColumnQuery(m_db);
+    QString addColumnSQL = "ALTER TABLE NowUsers ADD work_order_role VARCHAR(50)";
+    
+    if (!addColumnQuery.exec(addColumnSQL)) {
+        m_lastError = QString("添加工单角色字段失败: %1").arg(addColumnQuery.lastError().text());
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    qDebug() << "工单角色字段添加成功";
+    return true;
+}
+
+//初始化工单主表
+bool databasemanager::initWorkOrderTable()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    // 达梦数据库语法
+    QString createTableSQL = 
+        "CREATE TABLE IF NOT EXISTS WORK_ORDER ("
+        "ORDER_ID VARCHAR(50) PRIMARY KEY, "
+        "ORDER_TYPE VARCHAR(50) NOT NULL, "
+        "TITLE VARCHAR(200) NOT NULL, "
+        "DESCRIPTION CLOB, "
+        "RELATED_EQUIP_ID VARCHAR(50), "
+        "SHIP_ID VARCHAR(50), "
+        "STATUS VARCHAR(50) NOT NULL, "
+        "CREATE_TIME TIMESTAMP(6) NOT NULL, "
+        "ASSIGN_TIME TIMESTAMP(6), "
+        "ACTUAL_END_TIME TIMESTAMP(6), "
+        "CREATOR_ID VARCHAR(50) NOT NULL, "
+        "ASSIGNEE_ID VARCHAR(50), "
+        "ACCEPTOR_ID VARCHAR(50), "
+        "RELATED_PLAN_ID VARCHAR(50)"
+        ")";
+    
+    QSqlQuery query(m_db);
+    if (!query.exec(createTableSQL)) {
+        QString errorText = query.lastError().text();
+        if (errorText.contains("已存在") || errorText.contains("already exists")) {
+            qDebug() << "工单主表已存在，跳过创建";
+        } else {
+            m_lastError = QString("创建工单主表失败: %1").arg(errorText);
+            qDebug() << m_lastError;
+            return false;
+        }
+    } else {
+        qDebug() << "工单主表创建成功";
+    }
+    query.finish();
+    
+    return true;
+}
+
+//初始化工单备件消耗表
+bool databasemanager::initWorkOrderSpareTable()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    // 达梦数据库语法
+    QString createTableSQL = 
+        "CREATE TABLE IF NOT EXISTS WORK_ORDER_SPARE ("
+        "CONSUME_ID VARCHAR(50) PRIMARY KEY, "
+        "ORDER_ID VARCHAR(50) NOT NULL, "
+        "SPARE_ID VARCHAR(50) NOT NULL, "
+        "CONSUME_QUANTITY NUMBER(18,4) NOT NULL, "
+        "CONSUME_TIME TIMESTAMP(6) NOT NULL, "
+        "OPERATOR_ID VARCHAR(50), "
+        "FOREIGN KEY (ORDER_ID) REFERENCES WORK_ORDER(ORDER_ID) ON DELETE CASCADE"
+        ")";
+    
+    QSqlQuery query(m_db);
+    if (!query.exec(createTableSQL)) {
+        QString errorText = query.lastError().text();
+        if (errorText.contains("已存在") || errorText.contains("already exists")) {
+            qDebug() << "工单备件消耗表已存在，跳过创建";
+        } else {
+            m_lastError = QString("创建工单备件消耗表失败: %1").arg(errorText);
+            qDebug() << m_lastError;
+            return false;
+        }
+    } else {
+        qDebug() << "工单备件消耗表创建成功";
+    }
+    query.finish();
+    
+    return true;
+}
+
+//初始化工单检测报表表
+bool databasemanager::initWorkOrderReportTable()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    // 达梦数据库语法
+    QString createTableSQL = 
+        "CREATE TABLE IF NOT EXISTS WORK_ORDER_REPORT ("
+        "REPORT_ID VARCHAR(50) PRIMARY KEY, "
+        "ORDER_ID VARCHAR(50) NOT NULL, "
+        "REPORT_TYPE VARCHAR(50), "
+        "REPORT_CONTENT CLOB, "
+        "ATTACHMENT_IDS VARCHAR(4000), "
+        "REPORTER_ID VARCHAR(50), "
+        "REPORT_TIME TIMESTAMP(6) NOT NULL, "
+        "FOREIGN KEY (ORDER_ID) REFERENCES WORK_ORDER(ORDER_ID) ON DELETE CASCADE"
+        ")";
+    
+    QSqlQuery query(m_db);
+    if (!query.exec(createTableSQL)) {
+        QString errorText = query.lastError().text();
+        if (errorText.contains("已存在") || errorText.contains("already exists")) {
+            qDebug() << "工单检测报表表已存在，跳过创建";
+        } else {
+            m_lastError = QString("创建工单检测报表表失败: %1").arg(errorText);
+            qDebug() << m_lastError;
+            return false;
+        }
+    } else {
+        qDebug() << "工单检测报表表创建成功";
+    }
+    query.finish();
+    
+    return true;
+}
+
+//初始化工单操作日志表
+bool databasemanager::initWorkOrderLogTable()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    // 达梦数据库语法
+    QString createTableSQL = 
+        "CREATE TABLE IF NOT EXISTS WORK_ORDER_LOG ("
+        "LOG_ID VARCHAR(50) PRIMARY KEY, "
+        "ORDER_ID VARCHAR(50) NOT NULL, "
+        "OPERATE_TYPE VARCHAR(50) NOT NULL, "
+        "OPERATE_CONTENT VARCHAR(1000), "
+        "OPERATOR_ID VARCHAR(50), "
+        "OPERATE_TIME TIMESTAMP(6) NOT NULL, "
+        "FOREIGN KEY (ORDER_ID) REFERENCES WORK_ORDER(ORDER_ID) ON DELETE CASCADE"
+        ")";
+    
+    QSqlQuery query(m_db);
+    if (!query.exec(createTableSQL)) {
+        QString errorText = query.lastError().text();
+        if (errorText.contains("已存在") || errorText.contains("already exists")) {
+            qDebug() << "工单操作日志表已存在，跳过创建";
+        } else {
+            m_lastError = QString("创建工单操作日志表失败: %1").arg(errorText);
+            qDebug() << m_lastError;
+            return false;
+        }
+    } else {
+        qDebug() << "工单操作日志表创建成功";
+    }
+    query.finish();
+    
+    return true;
 }
 
 
