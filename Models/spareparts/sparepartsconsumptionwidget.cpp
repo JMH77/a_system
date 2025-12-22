@@ -1,5 +1,5 @@
 #include "sparepartsconsumptionwidget.h"
-#include "workordermanager.h"
+#include "../workorder/workordermanager.h"
 #include "sparepartsmanager.h"
 #include "newconsumptiondialog.h"
 #include "../auth/authmanager.h"

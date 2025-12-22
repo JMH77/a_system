@@ -9,7 +9,7 @@
 #include <QTableWidget>
 #include <QDoubleSpinBox>
 #include "workordermanager.h"
-#include "sparepartsmanager.h"
+#include "../spareparts/sparepartsmanager.h"
 
 class WorkOrderManager;
 struct SparePartsConsumptionData;

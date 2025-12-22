@@ -19,17 +19,17 @@ SOURCES += \
     mainwindow.cpp \
     widgets/registerwidget.cpp \
     widgets/permissionmanagementwidget.cpp \
-    Models/workordermanager.cpp \
-    Models/sparepartsmanager.cpp \
-    Models/workordermanagementwidget.cpp \
-    Models/newworkorderdialog.cpp \
-    Models/assignworkorderdialog.cpp \
-    Models/editworkorderdialog.cpp \
-    Models/newconsumptiondialog.cpp \
-    Models/mytaskswidget.cpp \
-    Models/acceptancewidget.cpp \
-    Models/sparepartsconsumptionwidget.cpp \
-    Models/logreportwidget.cpp
+    Models/workorder/workordermanager.cpp \
+    Models/spareparts/sparepartsmanager.cpp \
+    Models/workorder/workordermanagementwidget.cpp \
+    Models/workorder/newworkorderdialog.cpp \
+    Models/workorder/assignworkorderdialog.cpp \
+    Models/workorder/editworkorderdialog.cpp \
+    Models/spareparts/newconsumptiondialog.cpp \
+    Models/workorder/mytaskswidget.cpp \
+    Models/workorder/acceptancewidget.cpp \
+    Models/spareparts/sparepartsconsumptionwidget.cpp \
+    Models/log/logreportwidget.cpp
 
 
 HEADERS += \
@@ -42,17 +42,17 @@ HEADERS += \
     mainwindow.h \
     widgets/registerwidget.h \
     widgets/permissionmanagementwidget.h \
-    Models/workordermanager.h \
-    Models/sparepartsmanager.h \
-    Models/workordermanagementwidget.h \
-    Models/newworkorderdialog.h \
-    Models/assignworkorderdialog.h \
-    Models/editworkorderdialog.h \
-    Models/newconsumptiondialog.h \
-    Models/mytaskswidget.h \
-    Models/acceptancewidget.h \
-    Models/sparepartsconsumptionwidget.h \
-    Models/logreportwidget.h
+    Models/workorder/workordermanager.h \
+    Models/spareparts/sparepartsmanager.h \
+    Models/workorder/workordermanagementwidget.h \
+    Models/workorder/newworkorderdialog.h \
+    Models/workorder/assignworkorderdialog.h \
+    Models/workorder/editworkorderdialog.h \
+    Models/spareparts/newconsumptiondialog.h \
+    Models/workorder/mytaskswidget.h \
+    Models/workorder/acceptancewidget.h \
+    Models/spareparts/sparepartsconsumptionwidget.h \
+    Models/log/logreportwidget.h
 
 
 

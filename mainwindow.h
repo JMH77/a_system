@@ -11,11 +11,11 @@
 #include "widgets/registerwidget.h"
 #include "widgets/maincontentwidget.h"
 #include "widgets/permissionmanagementwidget.h"
-#include "Models/workordermanagementwidget.h"
-#include "Models/mytaskswidget.h"
-#include "Models/acceptancewidget.h"
-#include "Models/sparepartsconsumptionwidget.h"
-#include "Models/logreportwidget.h"
+#include "Models/workorder/workordermanagementwidget.h"
+#include "Models/workorder/mytaskswidget.h"
+#include "Models/workorder/acceptancewidget.h"
+#include "Models/spareparts/sparepartsconsumptionwidget.h"
+#include "Models/log/logreportwidget.h"
 
 
 

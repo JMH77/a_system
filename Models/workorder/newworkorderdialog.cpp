@@ -1,6 +1,6 @@
 #include "newworkorderdialog.h"
 #include "workordermanager.h"
-#include "sparepartsmanager.h"
+#include "../spareparts/sparepartsmanager.h"
 #include "../database/databasemanager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
