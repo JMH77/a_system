@@ -160,8 +160,30 @@ void AssignWorkOrderDialog::loadUsers()
 
 bool AssignWorkOrderDialog::validateInput()
 {
-    // 允许只分配执行人员或验收人员，也允许同时分配两个
-    // 不强制要求必须选择一个
+    // 必须同时指定执行人员和验收人员，否则工单无法完整流转
+    QString assignee = m_assigneeCombo->currentData().toString();
+    QString acceptor = m_acceptorCombo->currentData().toString();
+    
+    bool assigneeValid = !assignee.isEmpty() && 
+                         m_assigneeCombo->currentText() != "未分配" && 
+                         m_assigneeCombo->currentText() != "暂无执行人员";
+    bool acceptorValid = !acceptor.isEmpty() && 
+                         m_acceptorCombo->currentText() != "未分配" && 
+                         m_acceptorCombo->currentText() != "暂无验收人员";
+    
+    if (!assigneeValid && !acceptorValid) {
+        QMessageBox::warning(this, "验证失败", "请同时指定执行人员和验收人员！");
+        return false;
+    }
+    if (!assigneeValid) {
+        QMessageBox::warning(this, "验证失败", "请指定执行人员！");
+        return false;
+    }
+    if (!acceptorValid) {
+        QMessageBox::warning(this, "验证失败", "请指定验收人员！");
+        return false;
+    }
+    
     return true;
 }
 
