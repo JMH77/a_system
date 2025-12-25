@@ -21,6 +21,7 @@ private slots:
 
 private:
     void setupUI();
+    void applyStyles();
     void loadUsers();
     void updatePermissionsByRole(int row);  // 根据角色自动更新功能权限
     

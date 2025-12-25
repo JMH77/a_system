@@ -58,11 +58,11 @@ void LogReportWidget::setupUI()
     QStringList headers;
     headers << "日志ID" << "工单编号" << "操作类型" << "操作内容" << "操作时间" << "操作人";
     m_reportTable->setHorizontalHeaderLabels(headers);
-    m_reportTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_reportTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_reportTable->setSelectionMode(QAbstractItemView::NoSelection);
     m_reportTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // 设置所有列宽度相同
     m_reportTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_reportTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
     
     // 主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -74,18 +74,18 @@ void LogReportWidget::setupUI()
 
 void LogReportWidget::applyStyles()
 {
-    m_newButton->setMinimumHeight(35);
-    m_searchEdit->setMinimumHeight(35);
+    m_newButton->setMinimumHeight(50);
+    m_searchEdit->setMinimumHeight(45);
     
     // 设置按钮蓝色样式，与主系统一致
     this->setStyleSheet(
         "QPushButton#newButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton#newButton:hover {"
             "background: #5B9BD5;"
@@ -96,6 +96,27 @@ void LogReportWidget::applyStyles()
         "QPushButton#newButton:disabled {"
             "background: #CCCCCC;"
             "color: #888888;"
+        "}"
+        "QLineEdit {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget::item {"
+            "padding: 8px;"
+        "}"
+        "QHeaderView::section {"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "background-color: #6CA6CD;"
+            "color: white;"
+        "}"
+        "QTableWidget::item:selected {"
+            "background-color: #E3F2FD;"
+        "}"
+        "QTableWidget QHeaderView::section:selected {"
+            "background-color: #6CA6CD;"
         "}"
     );
 }

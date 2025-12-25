@@ -99,22 +99,22 @@ void EditWorkOrderDialog::setupUI()
 
 void EditWorkOrderDialog::applyStyles()
 {
-    m_titleEdit->setMinimumHeight(35);
-    m_equipIdEdit->setMinimumHeight(35);
-    m_shipIdEdit->setMinimumHeight(35);
-    m_planIdEdit->setMinimumHeight(35);
-    m_okButton->setMinimumSize(100, 35);
-    m_cancelButton->setMinimumSize(100, 35);
+    m_titleEdit->setMinimumHeight(45);
+    m_equipIdEdit->setMinimumHeight(45);
+    m_shipIdEdit->setMinimumHeight(45);
+    m_planIdEdit->setMinimumHeight(45);
+    m_okButton->setMinimumSize(120, 50);
+    m_cancelButton->setMinimumSize(120, 50);
     
     // 设置按钮蓝色样式，与主系统一致
     this->setStyleSheet(
         "QPushButton#okButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton#okButton:hover {"
             "background: #5B9BD5;"
@@ -123,18 +123,24 @@ void EditWorkOrderDialog::applyStyles()
             "background: #4A8BC4;"
         "}"
         "QPushButton#cancelButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #CCCCCC;"
             "color: #333333;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton#cancelButton:hover {"
             "background: #BBBBBB;"
         "}"
         "QPushButton#cancelButton:pressed {"
             "background: #AAAAAA;"
+        "}"
+        "QLineEdit, QTextEdit, QComboBox {"
+            "font-size: 18px;"
+        "}"
+        "QLabel {"
+            "font-size: 18px;"
         "}"
     );
 }

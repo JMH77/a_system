@@ -56,11 +56,11 @@ void AcceptanceWidget::setupUI()
     QStringList headers;
     headers << "工单编号" << "工单类型" << "标题" << "状态" << "完成时间" << "执行人" << "操作";
     m_acceptanceTable->setHorizontalHeaderLabels(headers);
-    m_acceptanceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_acceptanceTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_acceptanceTable->setSelectionMode(QAbstractItemView::NoSelection);
     m_acceptanceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // 设置所有列宽度相同
     m_acceptanceTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_acceptanceTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
     
     // 主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -72,17 +72,17 @@ void AcceptanceWidget::setupUI()
 
 void AcceptanceWidget::applyStyles()
 {
-    m_searchEdit->setMinimumHeight(35);
+    m_searchEdit->setMinimumHeight(45);
     
     // 设置按钮蓝色样式，与主系统一致
     this->setStyleSheet(
         "QPushButton {"
-            "padding: 6px 12px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 11px;"
+            "font-size: 18px;"
         "}"
         "QPushButton:hover {"
             "background: #5B9BD5;"
@@ -93,6 +93,33 @@ void AcceptanceWidget::applyStyles()
         "QPushButton:disabled {"
             "background: #CCCCCC;"
             "color: #888888;"
+        "}"
+        "QLineEdit {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget::item {"
+            "padding: 8px;"
+        "}"
+        "QHeaderView::section {"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "background-color: #6CA6CD;"
+            "color: white;"
+        "}"
+        "QTableWidget QPushButton {"
+            "width: 100%;"
+            "height: 100%;"
+            "margin: 1px;"
+            "padding: 5px;"
+        "}"
+        "QTableWidget::item:selected {"
+            "background-color:rgb(39, 144, 219);"
+        "}"
+        "QTableWidget QHeaderView::section:selected {"
+            "background-color: #6CA6CD;"
         "}"
     );
 }
@@ -171,6 +198,8 @@ void AcceptanceWidget::displayTasks(const QList<WorkOrderData> &tasks)
         QPushButton *acceptButton = new QPushButton("验收完毕", this);
         acceptButton->setProperty("orderId", data.orderId);  // 存储工单ID
         acceptButton->setProperty("row", row);  // 存储行号
+        // 让按钮铺满单元格
+        acceptButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         
         // 只有状态为"待验收"的工单才显示可点击的验收按钮
         if (data.status == "待验收") {

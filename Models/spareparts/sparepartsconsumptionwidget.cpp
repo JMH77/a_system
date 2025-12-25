@@ -71,11 +71,11 @@ void SparePartsConsumptionWidget::setupUI()
     QStringList headers;
     headers << "消耗ID" << "工单编号" << "备件ID" << "消耗数量" << "消耗时间" << "操作人";
     m_consumptionTable->setHorizontalHeaderLabels(headers);
-    m_consumptionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_consumptionTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_consumptionTable->setSelectionMode(QAbstractItemView::NoSelection);
     m_consumptionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // 设置所有列宽度相同
     m_consumptionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_consumptionTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
     
     // 主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -87,18 +87,18 @@ void SparePartsConsumptionWidget::setupUI()
 
 void SparePartsConsumptionWidget::applyStyles()
 {
-    m_newButton->setMinimumHeight(35);
-    m_searchEdit->setMinimumHeight(35);
+    m_newButton->setMinimumHeight(50);
+    m_searchEdit->setMinimumHeight(45);
     
     // 设置按钮蓝色样式，与主系统一致
     this->setStyleSheet(
         "QPushButton#newButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton#newButton:hover {"
             "background: #5B9BD5;"
@@ -109,6 +109,27 @@ void SparePartsConsumptionWidget::applyStyles()
         "QPushButton#newButton:disabled {"
             "background: #CCCCCC;"
             "color: #888888;"
+        "}"
+        "QLineEdit {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget::item {"
+            "padding: 8px;"
+        "}"
+        "QHeaderView::section {"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "background-color: #6CA6CD;"
+            "color: white;"
+        "}"
+        "QTableWidget::item:selected {"
+            "background-color: #E3F2FD;"
+        "}"
+        "QTableWidget QHeaderView::section:selected {"
+            "background-color: #6CA6CD;"
         "}"
     );
 }

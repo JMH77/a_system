@@ -84,6 +84,18 @@ void WorkOrderManagementWidget::setupUI()
     m_workOrderTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // 设置所有列宽度相同
     m_workOrderTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_workOrderTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
+    
+    // 强制设置标题行样式，确保不受选中状态影响
+    m_workOrderTable->horizontalHeader()->setStyleSheet(
+        "QHeaderView::section {"
+            "background-color: #6CA6CD;"
+            "color: white;"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "border: none;"
+        "}"
+    );
     
     // 连接表格选择变化信号，启用/禁用按钮
     connect(m_workOrderTable, &QTableWidget::itemSelectionChanged, this, [this]() {
@@ -126,20 +138,20 @@ void WorkOrderManagementWidget::setupUI()
 void WorkOrderManagementWidget::applyStyles()
 {
     // 设置按钮高度
-    m_newButton->setMinimumHeight(35);
-    m_assignButton->setMinimumHeight(35);
-    m_editButton->setMinimumHeight(35);
-    m_searchEdit->setMinimumHeight(35);
+    m_newButton->setMinimumHeight(50);
+    m_assignButton->setMinimumHeight(50);
+    m_editButton->setMinimumHeight(50);
+    m_searchEdit->setMinimumHeight(45);
     
     // 设置按钮蓝色样式，与主系统一致
     this->setStyleSheet(
         "QPushButton#newButton, QPushButton#assignButton, QPushButton#editButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton#newButton:hover, QPushButton#assignButton:hover, QPushButton#editButton:hover {"
             "background: #5B9BD5;"
@@ -150,6 +162,25 @@ void WorkOrderManagementWidget::applyStyles()
         "QPushButton#newButton:disabled, QPushButton#assignButton:disabled, QPushButton#editButton:disabled {"
             "background: #CCCCCC;"
             "color: #888888;"
+        "}"
+        "QLineEdit {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget::item {"
+            "padding: 8px;"
+        "}"
+        "QTableWidget QHeaderView::section {"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "background-color: #6CA6CD;"
+            "color: white;"
+            "border: none;"
+        "}"
+        "QTableWidget::item:selected {"
+            "background-color:  #6CA6CD;"
         "}"
     );
 }

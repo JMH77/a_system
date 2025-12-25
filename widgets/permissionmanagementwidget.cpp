@@ -47,6 +47,7 @@ void PermissionManagementWidget::setupUI()
     for (int i = COL_FUNC1; i <= COL_FUNC5; ++i) {
         m_userTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
     }
+    m_userTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
     
     // 创建按钮
     m_saveButton = new QPushButton("保存", this);
@@ -65,6 +66,68 @@ void PermissionManagementWidget::setupUI()
     buttonLayout->addWidget(m_cancelButton);
     
     mainLayout->addLayout(buttonLayout);
+    
+    // 应用样式
+    applyStyles();
+}
+
+void PermissionManagementWidget::applyStyles()
+{
+    // 设置按钮大小
+    m_saveButton->setMinimumSize(120, 50);
+    m_cancelButton->setMinimumSize(120, 50);
+    
+    // 设置字体样式
+    this->setStyleSheet(
+        "QPushButton {"
+            "padding: 10px 20px;"
+            "border-radius: 5px;"
+            "border: none;"
+            "background: #6CA6CD;"
+            "color: #ffffff;"
+            "font-size: 18px;"
+        "}"
+        "QPushButton:hover {"
+            "background: #5B9BD5;"
+        "}"
+        "QPushButton:pressed {"
+            "background: #4A8BC4;"
+        "}"
+        "QPushButton#cancelButton {"
+            "background: #CCCCCC;"
+            "color: #333333;"
+        "}"
+        "QPushButton#cancelButton:hover {"
+            "background: #BBBBBB;"
+        "}"
+        "QPushButton#cancelButton:pressed {"
+            "background: #AAAAAA;"
+        "}"
+        "QTableWidget {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget::item {"
+            "padding: 8px;"
+        "}"
+        "QHeaderView::section {"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "background-color: #6CA6CD;"
+            "color: white;"
+        "}"
+        "QTableWidget::item:selected {"
+            "background-color: #E3F2FD;"
+        "}"
+        "QTableWidget QHeaderView::section:selected {"
+            "background-color: #6CA6CD;"
+        "}"
+        "QComboBox {"
+            "font-size: 18px;"
+        "}"
+        "QCheckBox {"
+            "font-size: 18px;"
+        "}"
+    );
 }
 
 void PermissionManagementWidget::loadUsers()

@@ -123,10 +123,18 @@ void MainContentWidget::applyStyles()
     
     // 设置退出登录按钮字体
     QFont logoutButtonFont = font();
-    logoutButtonFont.setPointSize(12);
+    logoutButtonFont.setPointSize(14);
     logoutButtonFont.setBold(true);
     if (m_logoutButton) {
         m_logoutButton->setFont(logoutButtonFont);
+    }
+    
+    // 设置权限管理按钮字体
+    QFont permissionButtonFont = font();
+    permissionButtonFont.setPointSize(14);
+    permissionButtonFont.setBold(true);
+    if (m_permissionButton) {
+        m_permissionButton->setFont(permissionButtonFont);
     }
 
     // 设置按钮尺寸 - 做得更大一些
@@ -137,6 +145,16 @@ void MainContentWidget::applyStyles()
     m_functionButton3->setMinimumSize(buttonWidth, buttonHeight);
     m_functionButton4->setMinimumSize(buttonWidth, buttonHeight);
     m_functionButton5->setMinimumSize(buttonWidth, buttonHeight);
+    
+    // 设置权限管理按钮尺寸 - 增大
+    if (m_permissionButton) {
+        m_permissionButton->setMinimumSize(140, 45);
+    }
+    
+    // 设置退出登录按钮尺寸 - 增大
+    if (m_logoutButton) {
+        m_logoutButton->setMinimumSize(120, 45);
+    }
 
     // 设置样式表 - 与登录界面按钮风格一致
     this->setStyleSheet(
@@ -167,12 +185,12 @@ void MainContentWidget::applyStyles()
         "}"
         /* 权限管理按钮样式 */
         "#permissionButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #8B7355;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 14px;"
         "}"
         "#permissionButton:hover {"
             "background: #7A6344;"
@@ -182,12 +200,12 @@ void MainContentWidget::applyStyles()
         "}"
         /* 退出登录按钮样式 */
         "#logoutButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #DC143C;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 14px;"
         "}"
         "#logoutButton:hover {"
             "background: #B22222;"

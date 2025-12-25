@@ -121,7 +121,8 @@ void NewWorkOrderDialog::setupUI()
     m_spareTable->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
     // 设置所有列宽度相同
     m_spareTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    m_spareTable->setMaximumHeight(150);
+    m_spareTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
+    m_spareTable->setMaximumHeight(200);
     
     // 备件操作按钮
     QHBoxLayout *spareButtonLayout = new QHBoxLayout();
@@ -129,8 +130,8 @@ void NewWorkOrderDialog::setupUI()
     m_removeSpareButton = new QPushButton("删除选中", this);
     m_removeSpareButton->setEnabled(false);
     // 设置按钮大小
-    m_addSpareButton->setMinimumSize(100, 35);
-    m_removeSpareButton->setMinimumSize(100, 35);
+    m_addSpareButton->setMinimumSize(120, 50);
+    m_removeSpareButton->setMinimumSize(120, 50);
     connect(m_addSpareButton, &QPushButton::clicked, this, &NewWorkOrderDialog::onAddSpareClicked);
     connect(m_removeSpareButton, &QPushButton::clicked, this, &NewWorkOrderDialog::onRemoveSpareClicked);
     connect(m_spareTable, &QTableWidget::itemSelectionChanged, this, [this]() {
@@ -172,22 +173,22 @@ void NewWorkOrderDialog::setupUI()
 void NewWorkOrderDialog::applyStyles()
 {
     // 设置输入框高度
-    m_titleEdit->setMinimumHeight(35);
-    m_equipIdEdit->setMinimumHeight(35);
-    m_shipIdEdit->setMinimumHeight(35);
-    m_planIdEdit->setMinimumHeight(35);
-    m_okButton->setMinimumSize(100, 35);
-    m_cancelButton->setMinimumSize(100, 35);
+    m_titleEdit->setMinimumHeight(45);
+    m_equipIdEdit->setMinimumHeight(45);
+    m_shipIdEdit->setMinimumHeight(45);
+    m_planIdEdit->setMinimumHeight(45);
+    m_okButton->setMinimumSize(120, 50);
+    m_cancelButton->setMinimumSize(120, 50);
     
     // 设置按钮蓝色样式，与主系统一致
     this->setStyleSheet(
         "QPushButton#okButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton#okButton:hover {"
             "background: #5B9BD5;"
@@ -196,12 +197,12 @@ void NewWorkOrderDialog::applyStyles()
             "background: #4A8BC4;"
         "}"
         "QPushButton#cancelButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #CCCCCC;"
             "color: #333333;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton#cancelButton:hover {"
             "background: #BBBBBB;"
@@ -210,12 +211,12 @@ void NewWorkOrderDialog::applyStyles()
             "background: #AAAAAA;"
         "}"
         "QPushButton {"
-            "padding: 8px 16px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 12px;"
+            "font-size: 18px;"
         "}"
         "QPushButton:hover {"
             "background: #5B9BD5;"
@@ -226,6 +227,24 @@ void NewWorkOrderDialog::applyStyles()
         "QPushButton:disabled {"
             "background: #CCCCCC;"
             "color: #888888;"
+        "}"
+        "QLineEdit, QTextEdit, QComboBox {"
+            "font-size: 18px;"
+        "}"
+        "QLabel {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget::item {"
+            "padding: 8px;"
+        "}"
+        "QHeaderView::section {"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "background-color: #6CA6CD;"
+            "color: white;"
         "}"
     );
 }

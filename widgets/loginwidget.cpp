@@ -135,7 +135,7 @@ void LoginWidget::applyStyles()
 {
 	// 字号更大更饱满，并对关键元素加粗
 	QFont labelFont = font();
-    labelFont.setPointSize(18);
+    labelFont.setPointSize(12);
 	labelFont.setBold(true);
 	m_usernameLabel->setFont(labelFont);
 	m_passwordLabel->setFont(labelFont);

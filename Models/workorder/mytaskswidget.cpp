@@ -56,11 +56,11 @@ void MyTasksWidget::setupUI()
     QStringList headers;
     headers << "工单编号" << "工单类型" << "标题" << "状态" << "分配时间" << "创建人" << "操作";
     m_taskTable->setHorizontalHeaderLabels(headers);
-    m_taskTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_taskTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_taskTable->setSelectionMode(QAbstractItemView::NoSelection);
     m_taskTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // 设置所有列宽度相同
     m_taskTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_taskTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
     
     // 主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
@@ -72,17 +72,17 @@ void MyTasksWidget::setupUI()
 
 void MyTasksWidget::applyStyles()
 {
-    m_searchEdit->setMinimumHeight(35);
+    m_searchEdit->setMinimumHeight(45);
     
     // 设置按钮蓝色样式，与主系统一致
     this->setStyleSheet(
         "QPushButton {"
-            "padding: 6px 12px;"
+            "padding: 10px 20px;"
             "border-radius: 5px;"
             "border: none;"
             "background: #6CA6CD;"
             "color: #ffffff;"
-            "font-size: 11px;"
+            "font-size: 18px;"
         "}"
         "QPushButton:hover {"
             "background: #5B9BD5;"
@@ -93,6 +93,33 @@ void MyTasksWidget::applyStyles()
         "QPushButton:disabled {"
             "background: #CCCCCC;"
             "color: #888888;"
+        "}"
+        "QLineEdit {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget {"
+            "font-size: 18px;"
+        "}"
+        "QTableWidget::item {"
+            "padding: 8px;"
+        "}"
+        "QHeaderView::section {"
+            "font-size: 18px;"
+            "padding: 10px;"
+            "background-color: #6CA6CD;"
+            "color: white;"
+        "}"
+        "QTableWidget QPushButton {"
+            "width: 100%;"
+            "height: 100%;"
+            "margin: 1px;"
+            "padding: 5px;"
+        "}"
+        "QTableWidget::item:selected {"
+            "background-color: #E3F2FD;"
+        "}"
+        "QTableWidget QHeaderView::section:selected {"
+            "background-color: #6CA6CD;"
         "}"
     );
 }
@@ -171,6 +198,8 @@ void MyTasksWidget::displayTasks(const QList<WorkOrderData> &tasks)
         QPushButton *completeButton = new QPushButton("完成", this);
         completeButton->setProperty("orderId", data.orderId);  // 存储工单ID
         completeButton->setProperty("row", row);  // 存储行号
+        // 让按钮铺满单元格
+        completeButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         
         // 只有状态为"处理中"的工单才显示完成按钮
         // adminjmh管理员可以操作所有状态的工单（但按钮文本根据状态变化）
