@@ -306,7 +306,7 @@ QList<WorkOrderData> WorkOrderManager::searchWorkOrdersByTitle(const QString &ke
     return workOrders;
 }
 
-// 根据工单ID获取工单
+// 根据工单ID获取工单->其他表操作的时候会调用这个方法
 WorkOrderData WorkOrderManager::getWorkOrderById(const QString &orderId)
 {
     WorkOrderData data;
@@ -339,7 +339,7 @@ WorkOrderData WorkOrderManager::getWorkOrderById(const QString &orderId)
     return data;
 }
 
-// 更新工单状态
+// 更新工单的状态->没有被调用过
 bool WorkOrderManager::updateWorkOrderStatus(const QString &orderId, const QString &status)
 {
     if (!m_dbManager || !m_dbManager->isConnected()) {

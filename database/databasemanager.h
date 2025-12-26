@@ -44,6 +44,9 @@ public:
     //初始化工单操作日志表
     bool initWorkOrderLogTable();
     
+    //初始化工单数据库触发器（监测用户角色变化）
+    bool initWorkOrderTriggers();
+    
     //扩展用户表，添加工单角色字段
     bool addWorkOrderRoleToUserTable();
     

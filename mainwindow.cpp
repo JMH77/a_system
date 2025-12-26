@@ -62,6 +62,9 @@ MainWindow::MainWindow(QWidget *parent)
                 } else if (!dbManger->initWorkOrderLogTable()) {
                     QString errorMsg = QString("工单操作日志表初始化失败：%1").arg(dbManger->getLastError());
                     QMessageBox::warning(this, "工单操作日志表初始化失败", errorMsg);
+                } else if (!dbManger->initWorkOrderTriggers()) {
+                    QString errorMsg = QString("工单数据库触发器初始化失败：%1").arg(dbManger->getLastError());
+                    QMessageBox::warning(this, "工单数据库触发器初始化失败", errorMsg);
                 } else {
                     dbConnected = true;
                 }
