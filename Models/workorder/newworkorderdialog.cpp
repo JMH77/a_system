@@ -409,7 +409,7 @@ QList<SparePartsConsumptionData> NewWorkOrderDialog::getSpareConsumptions() cons
         consumption.consumeTime = currentTime;
         consumption.operatorId = m_creatorId;
         
-        // 生成消耗ID（在创建时会重新生成，这里先留空）
+        // 消耗ID将在创建时自动生成
         consumption.consumeId = "";
         
         consumptions.append(consumption);

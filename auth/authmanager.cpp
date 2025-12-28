@@ -40,7 +40,6 @@ bool AuthManager::userExists(const QString &username)
         result = count > 0;
     }
     
-    // 确保查询完成
     query.finish();
     return result;
 }
@@ -64,18 +63,17 @@ bool AuthManager::registerUser(const userinfo &user)
     // 加密密码
     QString passwordHash = hashPassword(data.password);
     
-    // 插入数据库（从 databasemanager 获取连接）
-    // 参考成功的代码，确保使用新的查询对象并提交事务
+    // 从数据库管理器获取连接
     QSqlDatabase db = m_dbManager->getDatabase();
     
-    // 确保数据库连接有效
+    // 检查数据库连接状态
     if (!db.isOpen()) {
         m_lastError = "数据库连接未打开";
         qDebug() << m_lastError;
         return false;
     }
     
-    // 先检查用户名是否存在（使用独立的查询对象，参考成功代码的方式）
+    // 检查用户名是否已存在
     QSqlQuery checkQuery(db);
     checkQuery.prepare("SELECT COUNT(*) FROM NowUsers WHERE username = ?");
     checkQuery.addBindValue(data.username);
@@ -88,10 +86,8 @@ bool AuthManager::registerUser(const userinfo &user)
     }
     checkQuery.finish();
     
-    // 创建全新的查询对象用于 INSERT（参考成功代码的方式）
+    // 插入新用户记录
     QSqlQuery query(db);
-    
-    // 准备 INSERT 语句（参考成功代码的格式）
     query.prepare("INSERT INTO NowUsers (username, password, email, name) VALUES (?, ?, ?, ?)");
     query.addBindValue(data.username);
     query.addBindValue(passwordHash);
@@ -106,10 +102,9 @@ bool AuthManager::registerUser(const userinfo &user)
         return false;
     }
     
-    // 确保查询完成
     query.finish();
     
-    // 参考成功代码：达梦数据库需要显式提交事务
+    // 提交事务
     if (!db.commit()) {
         m_lastError = QString("提交事务失败: %1").arg(db.lastError().text());
         qDebug() << m_lastError;

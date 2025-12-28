@@ -94,7 +94,7 @@ void LoginWidget::setupUI()
 	buttonsRow->addWidget(m_registerButton);
 	buttonsRow->addStretch();
 
-	// 用水平布局包裹表单，并在两侧添加弹性伸展，确保水平居中
+	// 用水平布局包裹表单，并在两侧添加弹性伸展以实现水平居中
 	QHBoxLayout *hCenter = new QHBoxLayout();
 	hCenter->addStretch();
 	// 将表单与按钮列成一列，保证按钮在表单下方
@@ -120,7 +120,7 @@ void LoginWidget::setupUI()
 	hCenter->addWidget(m_centerPanel);
 	hCenter->addStretch();
 
-	// 顶层垂直布局：上方伸展 + 中间表单 + 下方伸展，确保垂直居中
+	// 顶层垂直布局：上方伸展 + 中间表单 + 下方伸展以实现垂直居中
 	QVBoxLayout *rootLayout = new QVBoxLayout();
 	rootLayout->addStretch();
 	rootLayout->addLayout(hCenter);

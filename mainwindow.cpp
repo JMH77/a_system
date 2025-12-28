@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     this->setWindowTitle("登录");
     
-    // 先初始化UI，确保界面能显示
+    // 初始化UI
     initUI();
     
     // 设置一个合理的默认窗口尺寸与最小尺寸，避免启动时过小
@@ -141,8 +141,7 @@ void MainWindow::connections()
         permWidget->exec();
         
         // 权限更新后，刷新主界面按钮显示
-        // 重新获取当前用户名并更新按钮状态
-        // 这里需要从登录信息中获取，暂时使用adminjmh（因为只有管理员能打开这个对话框）
+        // 使用管理员账户更新按钮状态（只有管理员能打开权限管理对话框）
         m_mainContentWidget->updateButtonsByPermissions(m_authManager, "adminjmh");
     });
     
@@ -204,7 +203,7 @@ void MainWindow::connections()
 
     //连接登录失败信号
     connect(m_loginWidget, &LoginWidget::loginFailed, this, [](const QString &errorMessage){
-        // LoginWidget 内部已经显示了错误信息，这里不再重复显示
+        // 错误信息已在LoginWidget中显示，无需重复处理
     });
 
     //当收到注册界面的返回按钮点击后发出的切换到登录界面信号
@@ -231,7 +230,7 @@ void MainWindow::connections()
             return;
         }
         
-        // 尝试注册用户
+        // 注册用户
         if (m_authManager->registerUser(user)) {
             QMessageBox::information(this, "注册成功", "注册成功，请返回登录！");
             // 清空注册界面的输入框

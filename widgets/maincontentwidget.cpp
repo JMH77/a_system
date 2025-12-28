@@ -81,7 +81,7 @@ void MainContentWidget::setupUI()
     centerPanel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     centerPanel->setMaximumWidth(400);
 
-    // 用水平布局包裹中心面板，并在两侧添加弹性伸展，确保水平居中
+    // 用水平布局包裹中心面板，并在两侧添加弹性伸展以实现水平居中
     QHBoxLayout *hCenter = new QHBoxLayout();
     hCenter->addStretch();
     hCenter->addWidget(centerPanel);

@@ -18,7 +18,7 @@ databasemanager::~databasemanager() {
 
 //建立数据库连接
 bool databasemanager::connectDatabase(){
-    // 步骤1：检查配置管理器
+    // 检查配置管理器
     if (!m_configManager) {
         m_lastError = "配置管理器未设置";
         qDebug() << m_lastError;
@@ -31,38 +31,36 @@ bool databasemanager::connectDatabase(){
         return false;
     }
 
-    // 步骤2：检查是否已经连接
+    // 检查是否已经连接
     if (m_db.isOpen()) {
         qDebug() << "数据库已连接";
         return true;
     }
 
-    // 步骤3：从配置管理器读取数据库配置
+    // 从配置管理器读取数据库配置
     QString dbType = m_configManager->getDbType();
     QMap<QString, QString> dbConfig = m_configManager->getDbConfig();
 
-    //步骤4：只支持达梦数据库，使用QODBC驱动
+    // 使用QODBC驱动连接达梦数据库
     QString driverName = "QODBC";
     
-    // 步骤5：创建数据库连接
+    // 创建数据库连接
     m_db = QSqlDatabase::addDatabase(driverName);
 
-    // 步骤6：设置达梦数据库连接参数
+    // 设置达梦数据库连接参数
     m_db.setHostName(dbConfig.value("Host", "localhost"));
     m_db.setPort(dbConfig.value("Port", "5236").toInt());
     m_db.setDatabaseName(dbConfig.value("DatabaseName", ""));
     m_db.setUserName(dbConfig.value("UID", ""));
     m_db.setPassword(dbConfig.value("Password", ""));
 
-    // 步骤7：打开连接
+    // 打开连接
     if (!m_db.open()) {
         m_lastError = QString("数据库连接失败: %1").arg(m_db.lastError().text());
         qDebug() << m_lastError;
         return false;
     }
 
-
-    // 步骤8：连接成功
     qDebug() << "数据库连接成功";
     return true;
 }
@@ -580,9 +578,9 @@ bool databasemanager::initWorkOrderTriggers()
     
     if (!query.exec(triggerSQL)) {
         QString errorText = query.lastError().text();
-        // 如果触发器已存在，尝试删除后重新创建
+        // 触发器已存在时，删除后重新创建
         if (errorText.contains("已存在") || errorText.contains("already exists")) {
-            qDebug() << "触发器TRG_USER_ROLE_CHANGE_MONITOR已存在，尝试替换";
+            qDebug() << "触发器TRG_USER_ROLE_CHANGE_MONITOR已存在，重新创建";
             query.exec("DROP TRIGGER TRG_USER_ROLE_CHANGE_MONITOR");
             query.finish();
             if (!query.exec(triggerSQL)) {

@@ -86,7 +86,7 @@ void WorkOrderManagementWidget::setupUI()
     m_workOrderTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_workOrderTable->verticalHeader()->setDefaultSectionSize(50);  // 设置行高
     
-    // 强制设置标题行样式，确保不受选中状态影响
+    // 设置标题行样式，避免受选中状态影响
     m_workOrderTable->horizontalHeader()->setStyleSheet(
         "QHeaderView::section {"
             "background-color: #6CA6CD;"

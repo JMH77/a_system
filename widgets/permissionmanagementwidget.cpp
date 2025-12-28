@@ -22,7 +22,7 @@ PermissionManagementWidget::PermissionManagementWidget(AuthManager *authManager,
 {
     setWindowTitle("用户权限管理");
     setMinimumSize(1100, 500);
-    resize(1200, 600);  // 设置初始大小，确保有足够宽度显示所有信息
+    resize(1200, 600);  // 设置初始窗口大小
     setupUI();
     loadUsers();
 }
@@ -208,13 +208,11 @@ void PermissionManagementWidget::loadUsers()
     }
     
     // 设置列宽
-    // 用户名、邮箱、角色列设置固定宽度（较宽）
+    // 用户名、邮箱、角色列设置固定宽度
     m_userTable->setColumnWidth(COL_USERNAME, 180);
     m_userTable->setColumnWidth(COL_EMAIL, 280);  // 增加邮箱列宽度，因为邮箱地址可能较长
     m_userTable->setColumnWidth(COL_ROLE, 140);
     
-    // 功能一到功能五列使用Stretch模式，会自动均分剩余宽度
-    // 已经在setupUI中设置了Stretch模式，这里不需要再设置宽度
 }
 
 // 根据角色自动勾选对应的功能权限

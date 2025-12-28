@@ -59,7 +59,7 @@ bool WorkOrderManager::createWorkOrder(const WorkOrderData &workOrder)
     
     QSqlDatabase db = m_dbManager->getDatabase();
     
-    // 确保数据库连接有效
+    // 检查数据库连接状态
     if (!db.isOpen()) {
         m_lastError = "数据库连接未打开";
         qDebug() << m_lastError;
@@ -95,7 +95,7 @@ bool WorkOrderManager::createWorkOrder(const WorkOrderData &workOrder)
     
     query.finish();
     
-    // 达梦数据库需要显式提交事务
+    // 提交事务
     if (!db.commit()) {
         m_lastError = QString("提交事务失败: %1").arg(db.lastError().text());
         qDebug() << m_lastError;
@@ -306,7 +306,7 @@ QList<WorkOrderData> WorkOrderManager::searchWorkOrdersByTitle(const QString &ke
     return workOrders;
 }
 
-// 根据工单ID获取工单->其他表操作的时候会调用这个方法
+// 根据工单ID获取工单信息
 WorkOrderData WorkOrderManager::getWorkOrderById(const QString &orderId)
 {
     WorkOrderData data;
@@ -339,7 +339,7 @@ WorkOrderData WorkOrderManager::getWorkOrderById(const QString &orderId)
     return data;
 }
 
-// 更新工单的状态->没有被调用过
+// 更新工单状态
 bool WorkOrderManager::updateWorkOrderStatus(const QString &orderId, const QString &status)
 {
     if (!m_dbManager || !m_dbManager->isConnected()) {
@@ -382,7 +382,7 @@ bool WorkOrderManager::completeWorkOrder(const QString &orderId, const QString &
     
     QSqlDatabase db = m_dbManager->getDatabase();
     
-    // 确保数据库连接有效
+    // 检查数据库连接状态
     if (!db.isOpen()) {
         m_lastError = "数据库连接未打开";
         qDebug() << m_lastError;
@@ -407,7 +407,7 @@ bool WorkOrderManager::completeWorkOrder(const QString &orderId, const QString &
     
     query.finish();
     
-    // 达梦数据库需要显式提交事务
+    // 提交事务
     if (!db.commit()) {
         m_lastError = QString("提交事务失败: %1").arg(db.lastError().text());
         qDebug() << m_lastError;
@@ -436,7 +436,7 @@ bool WorkOrderManager::acceptWorkOrder(const QString &orderId, const QString &op
     
     QSqlDatabase db = m_dbManager->getDatabase();
     
-    // 确保数据库连接有效
+    // 检查数据库连接状态
     if (!db.isOpen()) {
         m_lastError = "数据库连接未打开";
         qDebug() << m_lastError;
@@ -459,7 +459,7 @@ bool WorkOrderManager::acceptWorkOrder(const QString &orderId, const QString &op
     
     query.finish();
     
-    // 达梦数据库需要显式提交事务
+    // 提交事务
     if (!db.commit()) {
         m_lastError = QString("提交事务失败: %1").arg(db.lastError().text());
         qDebug() << m_lastError;
@@ -540,7 +540,7 @@ bool WorkOrderManager::assignWorkOrder(const QString &orderId, const QString &as
     QString logContent = QString("分配工单：执行人员=%1，验收人员=%2")
                          .arg(assigneeId.isEmpty() ? "未分配" : assigneeId)
                          .arg(acceptorId.isEmpty() ? "未分配" : acceptorId);
-    // 如果没有传入操作人，尝试获取创建者作为操作人
+    // 获取操作人，未指定时使用创建者
     QString actualOperator = operatorId;
     if (actualOperator.isEmpty()) {
         WorkOrderData orderData = getWorkOrderById(orderId);
@@ -561,7 +561,7 @@ bool WorkOrderManager::updateWorkOrder(const QString &orderId, const WorkOrderDa
     
     QSqlDatabase db = m_dbManager->getDatabase();
     
-    // 确保数据库连接有效
+    // 检查数据库连接状态
     if (!db.isOpen()) {
         m_lastError = "数据库连接未打开";
         qDebug() << m_lastError;
@@ -595,16 +595,16 @@ bool WorkOrderManager::updateWorkOrder(const QString &orderId, const WorkOrderDa
     
     query.finish();
     
-    // 达梦数据库需要显式提交事务
+    // 提交事务
     if (!db.commit()) {
         m_lastError = QString("提交事务失败: %1").arg(db.lastError().text());
         qDebug() << m_lastError;
         return false;
     }
     
-    // 记录编辑工单日志（尝试从工单数据获取创建者，如果没有则使用空字符串）
+    // 记录编辑工单日志
     QString logContent = QString("编辑工单信息：%1").arg(workOrder.title);
-    // 编辑操作的操作人应该是创建者，这里从原始数据获取
+    // 使用原始工单的创建者作为操作人
     WorkOrderData originalData = getWorkOrderById(orderId);
     addLogRecord(orderId, "编辑工单", logContent, originalData.creatorId);
     
@@ -702,7 +702,7 @@ bool WorkOrderManager::addLogRecord(const QString &orderId, const QString &opera
     
     query.finish();
     
-    // 达梦数据库需要显式提交事务
+    // 提交事务
     if (!db.commit()) {
         m_lastError = QString("提交事务失败: %1").arg(db.lastError().text());
         qDebug() << m_lastError;

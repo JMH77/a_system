@@ -113,7 +113,7 @@ bool SparePartsManager::createConsumptions(const QList<SparePartsConsumptionData
         return false;
     }
     
-    // 先查询已有的记录数量，确保批量创建的ID唯一
+    // 查询已有记录数量，用于生成唯一ID
     QSqlQuery countQuery(db);
     QString dateStr = QDate::currentDate().toString("yyyyMMdd");
     countQuery.prepare("SELECT COUNT(*) FROM WORK_ORDER_SPARE WHERE CONSUME_ID LIKE ?");
@@ -133,7 +133,7 @@ bool SparePartsManager::createConsumptions(const QList<SparePartsConsumptionData
         // 如果ID为空，重新生成
         QString consumeId = consumption.consumeId;
         if (consumeId.isEmpty()) {
-            // 生成唯一ID，使用序号确保批量创建时不重复
+            // 生成唯一ID，使用序号避免重复
             int seqNum = startCount + index + 1;
             consumeId = QString("CS-%1-%2").arg(dateStr).arg(seqNum, 3, 10, QChar('0'));
         }
