@@ -480,8 +480,77 @@ bool databasemanager::initWorkOrderLogTable()
     return true;
 }
 
-//初始化工单数据库触发器（监测用户角色变化）
-bool databasemanager::initWorkOrderTriggers()
+//确保系统工单存在（用于记录系统操作）
+bool databasemanager::ensureSystemWorkOrder(const QString &orderId, 
+                                           const QString &title, 
+                                           const QString &description)
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    // 检查系统工单是否已存在
+    QSqlQuery checkQuery(m_db);
+    checkQuery.prepare("SELECT COUNT(*) FROM WORK_ORDER WHERE ORDER_ID = ?");
+    checkQuery.addBindValue(orderId);
+    
+    bool exists = false;
+    if (checkQuery.exec() && checkQuery.next()) {
+        exists = checkQuery.value(0).toInt() > 0;
+    } else {
+        m_lastError = QString("检查系统工单失败: %1").arg(checkQuery.lastError().text());
+        qDebug() << m_lastError;
+        checkQuery.finish();
+        return false;
+    }
+    checkQuery.finish();
+    
+    // 如果已存在，直接返回成功
+    if (exists) {
+        qDebug() << "系统工单已存在:" << orderId;
+        return true;
+    }
+    
+    // 创建系统工单
+    QSqlQuery insertQuery(m_db);
+    insertQuery.prepare(
+        "INSERT INTO WORK_ORDER ("
+        "ORDER_ID, ORDER_TYPE, TITLE, DESCRIPTION, STATUS, CREATE_TIME, CREATOR_ID"
+        ") VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+    insertQuery.addBindValue(orderId);
+    insertQuery.addBindValue("系统操作");
+    insertQuery.addBindValue(title);
+    insertQuery.addBindValue(description);
+    insertQuery.addBindValue("已完成");
+    insertQuery.addBindValue(QDateTime::currentDateTime());
+    insertQuery.addBindValue("system");
+    
+    if (!insertQuery.exec()) {
+        m_lastError = QString("创建系统工单失败: %1").arg(insertQuery.lastError().text());
+        qDebug() << m_lastError;
+        insertQuery.finish();
+        return false;
+    }
+    
+    insertQuery.finish();
+    
+    // 提交事务
+    if (!m_db.commit()) {
+        m_lastError = QString("提交系统工单事务失败: %1").arg(m_db.lastError().text());
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    qDebug() << "系统工单创建成功:" << orderId << "-" << title;
+    return true;
+}
+
+//创建或替换触发器
+bool databasemanager::createOrReplaceTrigger(const QString &triggerName, 
+                                            const QString &triggerSQL)
 {
     if (!m_db.isOpen()) {
         m_lastError = "数据库未连接";
@@ -491,45 +560,71 @@ bool databasemanager::initWorkOrderTriggers()
     
     QSqlQuery query(m_db);
     
-    // 首先创建一个系统工单用于记录用户角色变化（如果不存在）
-    // 这个工单ID用于记录系统操作日志
-    QString systemOrderId = "SYS-USER-ROLE";
-    QSqlQuery checkOrderQuery(m_db);
-    checkOrderQuery.prepare("SELECT COUNT(*) FROM WORK_ORDER WHERE ORDER_ID = ?");
-    checkOrderQuery.addBindValue(systemOrderId);
-    bool systemOrderExists = false;
-    if (checkOrderQuery.exec() && checkOrderQuery.next()) {
-        systemOrderExists = checkOrderQuery.value(0).toInt() > 0;
-    }
-    checkOrderQuery.finish();
-    
-    if (!systemOrderExists) {
-        // 创建系统工单用于记录用户角色变化
-        QSqlQuery createSystemOrderQuery(m_db);
-        createSystemOrderQuery.prepare(
-            "INSERT INTO WORK_ORDER ("
-            "ORDER_ID, ORDER_TYPE, TITLE, DESCRIPTION, STATUS, CREATE_TIME, CREATOR_ID"
-            ") VALUES (?, ?, ?, ?, ?, ?, ?)"
-        );
-        createSystemOrderQuery.addBindValue(systemOrderId);
-        createSystemOrderQuery.addBindValue("系统操作");
-        createSystemOrderQuery.addBindValue("系统用户角色管理");
-        createSystemOrderQuery.addBindValue("用于记录用户工单角色变化的系统工单");
-        createSystemOrderQuery.addBindValue("已完成");
-        createSystemOrderQuery.addBindValue(QDateTime::currentDateTime());
-        createSystemOrderQuery.addBindValue("system");
+    // 尝试创建触发器
+    if (!query.exec(triggerSQL)) {
+        QString errorText = query.lastError().text();
         
-        if (!createSystemOrderQuery.exec()) {
-            qDebug() << "创建系统工单失败（可能已存在）:" << createSystemOrderQuery.lastError().text();
+        // 如果触发器已存在，先删除再重新创建
+        if (errorText.contains("已存在") || errorText.contains("already exists")) {
+            qDebug() << "触发器" << triggerName << "已存在，尝试删除后重新创建";
+            
+            // 删除旧触发器
+            QString dropSQL = QString("DROP TRIGGER %1").arg(triggerName);
+            if (!query.exec(dropSQL)) {
+                m_lastError = QString("删除触发器%1失败: %2").arg(triggerName).arg(query.lastError().text());
+                qDebug() << m_lastError;
+                query.finish();
+                return false;
+            }
+            query.finish();
+            
+            // 重新创建触发器
+            QSqlQuery retryQuery(m_db);
+            if (!retryQuery.exec(triggerSQL)) {
+                m_lastError = QString("重新创建触发器%1失败: %2").arg(triggerName).arg(retryQuery.lastError().text());
+                qDebug() << m_lastError;
+                retryQuery.finish();
+                return false;
+            }
+            retryQuery.finish();
+            qDebug() << "触发器" << triggerName << "重新创建成功";
         } else {
-            m_db.commit();
-            qDebug() << "系统工单创建成功，用于记录用户角色变化";
+            // 其他错误
+            m_lastError = QString("创建触发器%1失败: %2").arg(triggerName).arg(errorText);
+            qDebug() << m_lastError;
+            query.finish();
+            return false;
         }
-        createSystemOrderQuery.finish();
+    } else {
+        query.finish();
+        qDebug() << "触发器" << triggerName << "创建成功";
     }
     
-    // 监测触发器：监测用户工单角色变化并自动记录日志
-    // 当NowUsers表的work_order_role字段发生变化时，自动在WORK_ORDER_LOG表中插入一条监测日志
+    return true;
+}
+
+//初始化工单数据库触发器（监测用户角色变化）
+bool databasemanager::initWorkOrderTriggers()
+{
+    if (!m_db.isOpen()) {
+        m_lastError = "数据库未连接";
+        qDebug() << m_lastError;
+        return false;
+    }
+    
+    qDebug() << "开始初始化工单触发器...";
+    
+    // 1. 确保系统工单存在
+    if (!ensureSystemWorkOrder(
+            "SYS-USER-ROLE",
+            "系统用户角色管理",
+            "用于记录用户工单角色变化的系统工单")) {
+        qDebug() << "确保系统工单失败，触发器初始化中止";
+        return false;
+    }
+    
+    // 2. 创建用户角色变化监测触发器
+    // 优化后的触发器SQL：简化日志ID生成逻辑
     QString triggerSQL = 
         "CREATE OR REPLACE TRIGGER TRG_USER_ROLE_CHANGE_MONITOR\n"
         "AFTER UPDATE OF work_order_role ON NowUsers\n"
@@ -537,35 +632,29 @@ bool databasemanager::initWorkOrderTriggers()
         "WHEN (NVL(OLD.work_order_role, '') != NVL(NEW.work_order_role, ''))\n"
         "DECLARE\n"
         "    v_log_id VARCHAR(50);\n"
-        "    v_seq_num INT := 1;\n"
         "    v_old_role VARCHAR(50);\n"
         "    v_new_role VARCHAR(50);\n"
+        "    v_timestamp VARCHAR(20);\n"
         "BEGIN\n"
-        "    -- 处理NULL值\n"
+        "    -- 处理NULL值，将NULL转换为'无'\n"
         "    v_old_role := NVL(:OLD.work_order_role, '无');\n"
         "    v_new_role := NVL(:NEW.work_order_role, '无');\n"
         "    \n"
-        "    -- 生成日志ID：LOG-YYYYMMDD-HHMMSS-序号\n"
-        "    BEGIN\n"
-        "        SELECT COUNT(*) + 1 INTO v_seq_num\n"
-        "        FROM WORK_ORDER_LOG\n"
-        "        WHERE LOG_ID LIKE 'LOG-' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '-%';\n"
-        "    EXCEPTION\n"
-        "        WHEN OTHERS THEN\n"
-        "            v_seq_num := 1;\n"
-        "    END;\n"
+        "    -- 生成时间戳字符串：YYYYMMDD-HH24MISS\n"
+        "    v_timestamp := TO_CHAR(SYSDATE, 'YYYYMMDD-HH24MISS');\n"
         "    \n"
-        "    IF v_seq_num IS NULL THEN\n"
-        "        v_seq_num := 1;\n"
-        "    END IF;\n"
-        "    \n"
-        "    v_log_id := 'LOG-' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '-' || \n"
-        "                TO_CHAR(SYSDATE, 'HH24MISS') || '-' || \n"
-        "                LPAD(TO_CHAR(v_seq_num), 3, '0');\n"
+        "    -- 生成唯一日志ID：LOG-时间戳-用户ID\n"
+        "    -- 使用用户ID确保唯一性，避免复杂的序列号查询\n"
+        "    v_log_id := 'LOG-' || v_timestamp || '-' || LPAD(TO_CHAR(:NEW.userid), 6, '0');\n"
         "    \n"
         "    -- 插入用户角色变化监测日志\n"
         "    INSERT INTO WORK_ORDER_LOG (\n"
-        "        LOG_ID, ORDER_ID, OPERATE_TYPE, OPERATE_CONTENT, OPERATOR_ID, OPERATE_TIME\n"
+        "        LOG_ID,\n"
+        "        ORDER_ID,\n"
+        "        OPERATE_TYPE,\n"
+        "        OPERATE_CONTENT,\n"
+        "        OPERATOR_ID,\n"
+        "        OPERATE_TIME\n"
         "    ) VALUES (\n"
         "        v_log_id,\n"
         "        'SYS-USER-ROLE',\n"
@@ -574,52 +663,17 @@ bool databasemanager::initWorkOrderTriggers()
         "        :NEW.username,\n"
         "        SYSDATE\n"
         "    );\n"
+        "EXCEPTION\n"
+        "    WHEN OTHERS THEN\n"
+        "        -- 触发器中的异常处理：记录错误但不阻止主操作\n"
+        "        NULL;\n"
         "END;";
     
-    if (!query.exec(triggerSQL)) {
-        QString errorText = query.lastError().text();
-        // 触发器已存在时，删除后重新创建
-        if (errorText.contains("已存在") || errorText.contains("already exists")) {
-            qDebug() << "触发器TRG_USER_ROLE_CHANGE_MONITOR已存在，重新创建";
-            query.exec("DROP TRIGGER TRG_USER_ROLE_CHANGE_MONITOR");
-            query.finish();
-            if (!query.exec(triggerSQL)) {
-                m_lastError = QString("创建用户角色变化监测触发器失败: %1").arg(query.lastError().text());
-                qDebug() << m_lastError;
-                query.finish();
-                return false;
-            }
-        } else {
-            m_lastError = QString("创建用户角色变化监测触发器失败: %1").arg(errorText);
-            qDebug() << m_lastError;
-            query.finish();
-            return false;
-        }
+    if (!createOrReplaceTrigger("TRG_USER_ROLE_CHANGE_MONITOR", triggerSQL)) {
+        qDebug() << "创建用户角色变化监测触发器失败";
+        return false;
     }
-    query.finish();
-    qDebug() << "用户角色变化监测触发器创建成功（自动监测并记录work_order_role字段变化）";
     
+    qDebug() << "工单触发器初始化完成：用户角色变化将自动记录到日志表";
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

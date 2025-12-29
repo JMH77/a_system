@@ -57,6 +57,15 @@ public:
     QString getDbType() const;
 
 private:
+    //确保系统工单存在（用于记录系统操作）
+    bool ensureSystemWorkOrder(const QString &orderId, 
+                              const QString &title, 
+                              const QString &description);
+    
+    //创建或替换触发器
+    bool createOrReplaceTrigger(const QString &triggerName, 
+                               const QString &triggerSQL);
+    
     QSqlDatabase m_db;
     configmanager *m_configManager;
     QString m_lastError;
